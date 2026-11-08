@@ -10,7 +10,8 @@ import { speak, stopSpeaking, useTts } from '@/lib/tts';
 import { colors, MIN_TOUCH, radius, spacing } from '@/theme/tokens';
 
 // Tutorial obligatorio (prompt.md §6.1). Diseño: design/pantallas/Tutorial.dc.html
-// Las ilustraciones definitivas y los coach marks llegan en F4.
+
+const QUADRI = require('../../../assets/brand/quadri.png');
 
 type Step = {
   title: string;
@@ -93,8 +94,16 @@ export default function TutorialScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Quadri, la mascota: protagonista en el paso 1 y acompaña en los demás */}
         <View style={[styles.illustration, { backgroundColor: step.bg }]} accessible={false}>
-          <Ionicons name={step.icon} size={120} color={step.tint} />
+          {index === 0 ? (
+            <Image source={QUADRI} style={styles.quadriBig} resizeMode="contain" accessibilityIgnoresInvertColors />
+          ) : (
+            <>
+              <Ionicons name={step.icon} size={120} color={step.tint} />
+              <Image source={QUADRI} style={styles.quadriSmall} resizeMode="contain" accessibilityIgnoresInvertColors />
+            </>
+          )}
         </View>
 
         <AppText bold color={colors.primary}>
@@ -157,7 +166,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
+    overflow: 'hidden',
   },
+  quadriBig: { height: 240, width: 200 },
+  quadriSmall: { position: 'absolute', right: 16, bottom: 12, height: 110, width: 90 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
   listen: {
     flexDirection: 'row',
