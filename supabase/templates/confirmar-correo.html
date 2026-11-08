@@ -1,0 +1,51 @@
+<!--
+  Plantilla del correo "Confirm signup" de Supabase Auth, en español y con la marca Quadra.
+  Dónde pegarla: Supabase → Authentication → Emails → "Confirm signup".
+  Asunto sugerido: Confirma tu correo para entrar a Quadra
+  Variables de Supabase: {{ .ConfirmationURL }} (enlace), {{ .Email }} (correo del vecino).
+  Solo se usa si "Confirm email" está activado. El remitente ("Supabase Auth") solo cambia con SMTP propio.
+-->
+<!doctype html>
+<html lang="es">
+  <body style="margin:0;padding:0;background:#f6f5ee;font-family:'Atkinson Hyperlegible',Arial,Helvetica,sans-serif;color:#14251c;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f5ee;padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fffdf8;border:1px solid #dfe3d6;border-radius:24px;overflow:hidden;">
+            <tr>
+              <td style="background:#123023;padding:24px;text-align:center;">
+                <img src="https://quadra-peak.vercel.app/logo.png" width="56" height="56" alt="Quadra" style="border-radius:14px;display:inline-block;" />
+                <div style="color:#ceed68;font-size:15px;font-weight:bold;margin-top:8px;">Hoy te ayudo, mañana me ayudas</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 24px 8px;">
+                <h1 style="margin:0 0 12px;font-size:26px;line-height:1.2;color:#14251c;">¡Hola, vecino! Confirma tu correo</h1>
+                <p style="margin:0 0 20px;font-size:17px;line-height:1.5;color:#47594e;">
+                  Estás a un toque de entrar a Quadra con <b style="color:#14251c;">{{ .Email }}</b>. Toca el botón y luego vuelve a la app.
+                </p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="center" style="border-radius:16px;background:#123023;">
+                      <a href="{{ .ConfirmationURL }}" style="display:block;padding:18px 20px;font-size:19px;font-weight:bold;color:#ceed68;text-decoration:none;border-radius:16px;">Confirmar mi correo</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:20px 0 0;font-size:15px;line-height:1.5;color:#47594e;">
+                  Si no creaste una cuenta en Quadra, ignora este mensaje: no pasa nada.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 24px 24px;">
+                <div style="border-top:1px solid #dfe3d6;padding-top:14px;font-size:13px;color:#47594e;text-align:center;">
+                  Quadra · Equipo PEAK · Hackathon UTP · El Comercio 2026
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

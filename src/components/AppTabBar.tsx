@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { setTaps } from '@/components/ClickCounter';
 import { openLocalEmergency } from '@/data/repositories/emergency';
-import { colors, MIN_TOUCH, spacing } from '@/theme/tokens';
+import { colors, elevation, MIN_TOUCH, radius, spacing } from '@/theme/tokens';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -76,8 +76,10 @@ export function AppTabBar({ state, navigateToTab }: BottomTabBarProps) {
               }}
               style={styles.item}
             >
-              <Ionicons name={item.icon} size={28} color={colors.textSecondary} />
-              <AppText variant="caption" bold color={colors.textSecondary} {...LABEL}>
+              <View style={styles.iconSlot}>
+                <Ionicons name={item.icon} size={26} color={colors.danger} />
+              </View>
+              <AppText variant="caption" bold color={colors.danger} {...LABEL}>
                 {item.label}
               </AppText>
             </Pressable>
@@ -94,7 +96,9 @@ export function AppTabBar({ state, navigateToTab }: BottomTabBarProps) {
             onPress={() => goTab(item.route)}
             style={styles.item}
           >
-            <Ionicons name={active ? item.iconActive : item.icon} size={28} color={tint} />
+            <View style={[styles.iconSlot, active && styles.iconSlotActive]}>
+              <Ionicons name={active ? item.iconActive : item.icon} size={26} color={tint} />
+            </View>
             <AppText variant="caption" bold color={tint} {...LABEL}>
               {item.label}
             </AppText>
@@ -109,11 +113,15 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: colors.bg,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.lg + 4,
+    borderTopRightRadius: radius.lg + 4,
     paddingTop: spacing.sm,
+    ...elevation(3),
   },
+  // Indicador del tab activo (pastilla detrás del ícono, estilo Material 3)
+  iconSlot: { width: 60, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  iconSlotActive: { backgroundColor: colors.primarySoft },
   item: {
     flex: 1,
     minHeight: MIN_TOUCH,
@@ -129,8 +137,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -28,
+    marginTop: -30,
     borderWidth: 4,
-    borderColor: colors.bg,
+    borderColor: colors.surface,
+    ...elevation(2),
   },
 });

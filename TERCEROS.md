@@ -62,6 +62,7 @@ Versiones exactas instaladas (ver `package-lock.json`).
 | Componente | Versión | Licencia | Uso en Quadra |
 |---|---|---|---|
 | qrcode-generator (Kazuhiko Arase), copiado en `landing/qrcode.js` | 1.4.4 | MIT | Código QR de la landing, sin cargarlo desde un CDN |
+| Lucide Icons (20 íconos SVG copiados en línea en `landing/index.html`, elegidos en allsvgicons.com) | lucide.dev (actual) | ISC | Íconos de la landing (descarga, ubicación, Bluetooth, micrófono, etc.), sin CDN |
 
 ## Plantilla de inicio
 

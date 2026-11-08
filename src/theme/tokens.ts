@@ -64,5 +64,20 @@ export const spacing = {
 // Accesibilidad: área táctil mínima 56 dp (prompt.md §7).
 export const MIN_TOUCH = 56;
 
+/**
+ * Sombra suave con tinte verde de marca (no gris plano). Android usa `elevation`
+ * (y `shadowColor` desde Android 9); iOS usa shadow*. Nivel 1: tarjetas; 2: botones flotantes; 3: barras.
+ */
+export function elevation(level: 1 | 2 | 3) {
+  const [y, opacity, blur] = level === 1 ? [2, 0.06, 8] : level === 2 ? [4, 0.12, 12] : [-2, 0.08, 16];
+  return {
+    elevation: level === 1 ? 2 : level === 2 ? 6 : 12,
+    shadowColor: '#0B2018',
+    shadowOpacity: opacity,
+    shadowRadius: blur,
+    shadowOffset: { width: 0, height: y },
+  } as const;
+}
+
 export const theme = { colors, fonts, fontSize, radius, spacing, MIN_TOUCH };
 export type Theme = typeof theme;

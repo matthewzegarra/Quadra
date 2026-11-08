@@ -39,7 +39,8 @@ export function BigButton({ label, onPress, icon, tone = 'primary', hint, disabl
       }}
       style={({ pressed }) => [
         styles.btn,
-        { backgroundColor: t.bg, borderColor: t.border ?? t.bg, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
+        { backgroundColor: t.bg, borderColor: t.border ?? t.bg, opacity: disabled ? 0.5 : pressed ? 0.9 : 1 },
+        pressed && !disabled && { transform: [{ scale: 0.985 }] },
       ]}
     >
       <View style={styles.row}>

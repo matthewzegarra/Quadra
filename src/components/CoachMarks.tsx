@@ -15,7 +15,7 @@ type Mark = { title: string; body: string; icon: keyof typeof Ionicons.glyphMap;
 const MARKS: Mark[] = [
   {
     title: 'Publica en 3 toques',
-    body: 'Toca el botón naranja "Publicar" para ofrecer, vender o pedir ayuda. También puedes decirlo con tu voz.',
+    body: 'Toca el botón "+ Publicar" del centro para ofrecer, vender o pedir ayuda. También puedes decirlo con tu voz.',
     icon: 'add-circle',
     at: (_t, b) => ({ bottom: b + 110, left: spacing.xl, right: spacing.xl }),
     arrow: 'down',
@@ -31,7 +31,7 @@ const MARKS: Mark[] = [
     title: 'A pie · 1.5 km',
     body: 'Te mostramos lo que está cerca, a pocos minutos caminando. Tócalo para ver todo el distrito.',
     icon: 'walk',
-    at: (t) => ({ top: t + 300, left: spacing.xl, right: spacing.xl }),
+    at: (t) => ({ top: t + 340, left: spacing.xl, right: spacing.xl }),
     arrow: 'up',
   },
 ];

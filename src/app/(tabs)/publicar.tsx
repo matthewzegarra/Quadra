@@ -11,7 +11,7 @@ import { VoiceCard } from '@/components/VoiceButton';
 import { openLocalEmergency } from '@/data/repositories/emergency';
 import { PUBLISH_TILES, tipoFromParsed, type PublishTipo } from '@/features/publish/publishTypes';
 import { parseVoice } from '@/features/voice/parseVoice';
-import { colors, radius, spacing } from '@/theme/tokens';
+import { colors, elevation, radius, spacing } from '@/theme/tokens';
 
 // Publicar · toque 2 de 3. Diseño: design/pantallas/Publicar.dc.html
 export default function PublicarScreen() {
@@ -67,7 +67,7 @@ export default function PublicarScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={t.label}
                 onPress={() => go(t.tipo)}
-                style={({ pressed }) => [styles.tile, danger && styles.tileDanger, pressed && { opacity: 0.85 }]}
+                style={({ pressed }) => [styles.tile, danger && styles.tileDanger, pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }]}
               >
                 <View style={[styles.tileIcon, { backgroundColor: t.bg }]}>
                   <Ionicons name={t.icon} size={34} color={t.color} />
@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     justifyContent: 'space-between',
     gap: spacing.md,
+    ...elevation(1),
   },
   tileDanger: { backgroundColor: colors.danger, borderColor: colors.danger },
   tileIcon: { width: 60, height: 60, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },

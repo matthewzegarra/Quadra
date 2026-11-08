@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 import { getDb } from '@/data/db';
 import { refreshPendingCount } from '@/data/repositories/base';
 import { useEmergencyMode } from '@/data/repositories/emergency';
-import { ensureMyProfile, getMyProfile, remapIdentity, updateMyProfile } from '@/data/repositories/profiles';
+import { ensureMyProfile, fixLegacyDemoHome, getMyProfile, remapIdentity, updateMyProfile } from '@/data/repositories/profiles';
 import { onIncomingRow, setSyncInterval, startSyncEngine, syncNow } from '@/data/sync/SyncEngine';
 import type { Favor } from '@/data/types';
 import { EMERGENCY_TYPES, firstName } from '@/features/catalog';
 import { ensureOfflinePack } from '@/features/map/offlineMap';
 import { currentUserId, useSession } from '@/features/session/store';
 import { startConnectivityListener, useConnectivity } from '@/lib/connectivity';
-import { refreshLocation } from '@/lib/location';
+import { refreshLocation, useLocationStore } from '@/lib/location';
 import { initNotifications, notify, zoneEmergencyKey } from '@/lib/notify';
 import { restoreSession } from '@/lib/supabase';
 import { startMesh, stopMesh } from '@/mesh/MeshRouter';
@@ -54,6 +55,7 @@ export async function bootstrap(): Promise<void> {
   void refreshLocation().then(async () => {
     if (!useSession.getState().onboardingDone) return;
     await ensureMyProfile();
+    await fixLegacyDemoHome();
     await syncDemoFlag();
   });
   void initNotifications(useSession.getState().onboardingDone);
@@ -76,9 +78,20 @@ export function useAppEffects() {
     [],
   );
 
+  // Mapa offline del barrio donde está el vecino (se baja una vez por barrio, ~1 km de cuadrícula)
+  const areaKey = useLocationStore((s) => (s.source === 'gps' || s.simulateDemo ? `${s.coords.lat.toFixed(2)}_${s.coords.lng.toFixed(2)}` : null));
   useEffect(() => {
-    if (isOnline) void ensureOfflinePack();
-  }, [isOnline]);
+    if (isOnline && areaKey) void ensureOfflinePack();
+  }, [isOnline, areaKey]);
+
+  // Al volver a la app, medir de nuevo la ubicación real (como mucho cada 2 min)
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (st) => {
+      const at = useLocationStore.getState().updatedAt ?? 0;
+      if (st === 'active' && Date.now() - at > 120_000) void refreshLocation();
+    });
+    return () => sub.remove();
+  }, []);
 
   // En emergencia sincronizamos más seguido
   useEffect(() => {

@@ -3,7 +3,8 @@ import { saveRow } from '@/data/repositories/base';
 import { bumpTables } from '@/data/store';
 import type { Profile } from '@/data/types';
 import { currentUserId, useSession } from '@/features/session/store';
-import { currentCoords } from '@/lib/location';
+import { DEMO_CENTER, distanceMeters } from '@/lib/geo';
+import { currentCoords, refreshLocation, setSimulateDemo, useLocationStore } from '@/lib/location';
 import { publicCoords } from '@/lib/privacy';
 import { DEMO_ZONE_ID } from '@/lib/zone';
 
@@ -42,6 +43,32 @@ export async function ensureMyProfile(): Promise<Profile> {
   };
   await saveRow('profiles', row);
   return (await getMyProfile())!;
+}
+
+/** Mueve "mi casa" (la que valida el Visto Bueno) a la ubicación que muestra la app. */
+export async function setHomeHere(): Promise<void> {
+  const here = currentCoords();
+  const pub = publicCoords(here);
+  await updateMyProfile({ home_lat: here.lat, home_lng: here.lng, public_home_lat: pub.public_lat, public_home_lng: pub.public_lng });
+}
+
+/**
+ * Ver el barrio demo (Lince) o volver a la ubicación real. La casa se mueve con la elección
+ * para que el Visto Bueno (≤ 1.5 km) funcione igual en la app y en el servidor.
+ */
+export async function setDemoZone(on: boolean): Promise<void> {
+  setSimulateDemo(on);
+  if (!on) await refreshLocation();
+  await setHomeHere();
+}
+
+/** Versiones anteriores ponían la casa en Lince sin avisar: si ya hay GPS real, la corregimos. */
+export async function fixLegacyDemoHome(): Promise<void> {
+  const loc = useLocationStore.getState();
+  if (loc.source !== 'gps' || loc.simulateDemo) return;
+  const me = await getMyProfile();
+  if (!me || me.home_lat == null || me.home_lng == null) return;
+  if (distanceMeters({ lat: me.home_lat, lng: me.home_lng }, DEMO_CENTER) < 10) await setHomeHere();
 }
 
 /** Actualiza campos del perfil propio (se sube completo con upsert). */

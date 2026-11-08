@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es-PE">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Correo confirmado · Quadra</title>
+  <meta name="robots" content="noindex" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="theme-color" content="#123023" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <style>
+    :root { --forest: #123023; --lime: #ceed68; --lime-soft: #f1f9d6; --cream: #f6f5ee; --paper: #fffdf8; --ink: #14251c; --muted: #47594e; --line: #dfe3d6; --danger: #b42318; --danger-soft: #fde8e4; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; min-height: 100dvh; background: var(--cream); color: var(--ink);
+      font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 18px; line-height: 1.5;
+      display: grid; place-items: center; padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+    }
+    main { width: 100%; max-width: 440px; display: grid; gap: 18px; text-align: center; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; justify-self: center; font-weight: 700; font-size: 22px; }
+    .brand img { width: 38px; height: 38px; border-radius: 11px; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 28px; padding: 28px 22px; display: grid; gap: 14px; box-shadow: 0 8px 24px rgba(11, 32, 24, .08); }
+    .art { position: relative; width: 168px; height: 150px; justify-self: center; }
+    .circle { position: absolute; left: 0; top: 0; width: 132px; height: 132px; border-radius: 50%; background: var(--lime-soft); display: grid; place-items: center; color: var(--forest); }
+    .circle svg { width: 60px; height: 60px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .art img { position: absolute; right: 0; bottom: 0; width: 78px; height: auto; }
+    img { max-width: 100%; }
+    .error .circle { background: var(--danger-soft); color: var(--danger); }
+    h1 { margin: 0; font-size: 30px; line-height: 1.1; letter-spacing: -.5px; }
+    p { margin: 0; color: var(--muted); }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; padding: 0 22px; border-radius: 16px;
+      font-weight: 700; font-size: 19px; text-decoration: none; background: var(--forest); color: var(--lime);
+    }
+    .btn:active { transform: scale(.98); }
+    .steps { text-align: left; margin: 0; padding: 14px 16px; list-style: none; background: var(--lime-soft); border-radius: 16px; display: grid; gap: 8px; color: #3e5210; font-size: 16px; }
+    .steps b { color: var(--ink); }
+    small { color: var(--muted); font-size: 15px; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 3px solid var(--lime); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="brand"><img src="logo.png" alt="" width="38" height="38" /> Quadra</span>
+
+    <!-- Éxito -->
+    <section class="card" id="ok">
+      <div class="art" aria-hidden="true">
+        <div class="circle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <img src="quadri.png" alt="" width="263" height="320" />
+      </div>
+      <h1>¡Listo, tu correo está confirmado!</h1>
+      <p>Ya eres parte de tu cuadra. Vuelve a Quadra para entrar.</p>
+      <a class="btn" href="quadra://bienvenida?confirmado=1">Volver a Quadra</a>
+      <ol class="steps">
+        <li>Si el botón no abre la app, ábrela tú y toca <b>“Ya lo confirmé, entrar”</b>.</li>
+      </ol>
+    </section>
+
+    <!-- Enlace vencido o ya usado -->
+    <section class="card error" id="fail" hidden>
+      <div class="art" aria-hidden="true">
+        <div class="circle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></div>
+        <img src="quadri.png" alt="" width="263" height="320" />
+      </div>
+      <h1>Este enlace ya no sirve</h1>
+      <p id="fail-text">Puede que haya vencido o que ya lo hayas usado.</p>
+      <a class="btn" href="quadra://bienvenida">Abrir Quadra</a>
+      <ol class="steps">
+        <li>En la app, toca <b>“Reenviar correo”</b> para recibir uno nuevo.</li>
+        <li>Si ya confirmaste antes, solo entra con tu correo y contraseña.</li>
+      </ol>
+    </section>
+
+    <small>Quadra · Hoy te ayudo, mañana me ayudas</small>
+  </main>
+
+  <script>
+    // Supabase redirige aquí con datos en el "#" (sesión o error). No los mostramos ni los guardamos:
+    // solo leemos si hubo error y limpiamos la barra de direcciones.
+    (function () {
+      var raw = (location.hash || '').replace(/^#/, '') + '&' + (location.search || '').replace(/^\?/, '');
+      var params = new URLSearchParams(raw);
+      if (location.hash || location.search) history.replaceState(null, '', location.pathname);
+      var error = params.get('error') || params.get('error_code');
+      if (!error) return;
+      document.getElementById('ok').hidden = true;
+      document.getElementById('fail').hidden = false;
+      if ((params.get('error_code') || '').indexOf('expired') >= 0) {
+        document.getElementById('fail-text').textContent = 'El enlace venció. Pide uno nuevo desde la app.';
+      }
+    })();
+  </script>
+</body>
+</html>

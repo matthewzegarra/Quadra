@@ -11,7 +11,7 @@ import { Avatar, Card, Chip, Field, Section } from '@/components/ui';
 import { activateZoneEmergency, claimZoneAdmin } from '@/data/repositories/emergency';
 import { useMyFavors } from '@/data/repositories/favors';
 import { useMyListings } from '@/data/repositories/listings';
-import { updateMyProfile } from '@/data/repositories/profiles';
+import { setDemoZone, updateMyProfile } from '@/data/repositories/profiles';
 import { useSyncState } from '@/data/store';
 import { syncNow } from '@/data/sync/SyncEngine';
 import type { Profile } from '@/data/types';
@@ -19,7 +19,7 @@ import { useLocalQuery } from '@/data/useLocalQuery';
 import { EMERGENCY_TYPES, FAVOR_TYPES } from '@/features/catalog';
 import { useCurrentUserId, useSession } from '@/features/session/store';
 import { useConnectivity } from '@/lib/connectivity';
-import { refreshLocation, useLocationStore } from '@/lib/location';
+import { locationText, refreshLocation, useLocationStore } from '@/lib/location';
 import {
   notify,
   openNotificationSettings,
@@ -46,7 +46,7 @@ export default function PerfilScreen() {
   const isAdmin = profile?.is_zone_admin === 1;
 
   const activate = () =>
-    Alert.alert('¿Activar Modo Emergencia?', `Toda la zona Lince · Sector 3 pasará a Modo Emergencia (${EMERGENCY_TYPES.find((t) => t.key === etype)?.label}). Llega por internet y por la red vecinal.`, [
+    Alert.alert('¿Activar Modo Emergencia?', `Toda la zona de tu junta vecinal pasará a Modo Emergencia (${EMERGENCY_TYPES.find((t) => t.key === etype)?.label}). Llega por internet y por la red vecinal.`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Activar',
@@ -68,7 +68,7 @@ export default function PerfilScreen() {
               {s.displayName ?? 'Vecino'}
             </AppText>
             <AppText color={colors.textSecondary}>
-              Lince · Sector 3{isAdmin ? ' · Junta vecinal' : ''}
+              {locationText(loc)}{isAdmin ? ' · Junta vecinal' : ''}
               {s.dniLast4 ? ` · DNI ****${s.dniLast4}` : ''}
             </AppText>
           </View>
@@ -109,6 +109,12 @@ export default function PerfilScreen() {
           />
           <NotificationsSetting />
           <Toggle label="Red vecinal (Bluetooth)" hint="Se activa sola en emergencia o sin internet." value={s.meshEnabled} onChange={s.setMeshEnabled} />
+          <Toggle
+            label="Ver el barrio demo (Lince)"
+            hint="Para ensayar con los datos de prueba. Apagado, Quadra usa tu ubicación real."
+            value={loc.simulateDemo}
+            onChange={(v) => void setDemoZone(v)}
+          />
           <Toggle
             label="Modo demo"
             hint="Publica sin esperar a la junta. Sirve para ensayar. Apagado, todo pasa por revisión."
@@ -184,7 +190,7 @@ export default function PerfilScreen() {
               <Diag label="Por enviar" value={`${sync.pending}`} />
               <Diag label="Última sincronización" value={sync.lastSyncAt ? new Date(sync.lastSyncAt).toLocaleTimeString() : '—'} />
               {sync.lastError ? <Diag label="Último error" value={sync.lastError} /> : null}
-              <Diag label="Ubicación" value={`${loc.source === 'gps' ? 'GPS' : 'demo Lince'} · ${loc.coords.lat.toFixed(4)}, ${loc.coords.lng.toFixed(4)}`} />
+              <Diag label="Ubicación" value={`${loc.source === 'gps' ? 'GPS' : loc.source === 'last' ? 'última conocida' : 'barrio demo'} · ${loc.coords.lat.toFixed(4)}, ${loc.coords.lng.toFixed(4)}`} />
               <Diag label="Red vecinal" value={`${mesh.running ? 'activa' : 'apagada'} · ${mesh.peers.filter((p) => p.connected).length} conectados`} />
               <View style={styles.wrap}>
                 <Chip label="Sincronizar ahora" icon="sync-outline" onPress={() => void syncNow()} />

@@ -12,7 +12,7 @@ import { MicButton } from '@/components/VoiceButton';
 import { offerHelp, useFavor } from '@/data/repositories/favors';
 import { firstName, initials } from '@/features/catalog';
 import { distanceMeters, formatDistance, type LatLng } from '@/lib/geo';
-import { refreshLocation, reverseLabel, useLocationStore } from '@/lib/location';
+import { locationText, refreshLocation, reverseLabel, useLocationStore } from '@/lib/location';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 // "Yo te ayudo" en 2 toques. Diseño: design/pantallas/OfrecerAyuda.dc.html
@@ -83,7 +83,7 @@ export default function OfrecerAyudaScreen() {
           <Option
             selected={source === 'gps'}
             title="Mi ubicación actual"
-            subtitle={`${loc.label ?? 'Lince'}${loc.accuracy ? ` · precisión ${loc.accuracy} m` : loc.source === 'demo' ? ' · ubicación demo' : ''}`}
+            subtitle={`${locationText(loc)}${loc.accuracy && loc.source === 'gps' ? ` · precisión ${loc.accuracy} m` : ''}`}
             onPress={() => setSource('gps')}
           />
           <Option

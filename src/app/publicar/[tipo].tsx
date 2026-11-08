@@ -18,7 +18,7 @@ import { useSession } from '@/features/session/store';
 import { parseVoice } from '@/features/voice/parseVoice';
 import type { ParsedPost } from '@/features/voice/parseVoiceOffline';
 import { useConnectivity } from '@/lib/connectivity';
-import { refreshLocation, useLocationStore } from '@/lib/location';
+import { locationText, refreshLocation, useLocationStore } from '@/lib/location';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 // Publicar · toque 3 de 3: todo prellenado, campos opcionales. Diseño: design/pantallas/Confirmar.dc.html
@@ -261,9 +261,13 @@ export default function ConfirmarScreen() {
           <View style={styles.location}>
             <Ionicons name="location-outline" size={28} color={colors.primary} />
             <View style={{ flex: 1 }}>
-              <AppText bold>Tu casa · {loc.label ?? 'Lince'}</AppText>
+              <AppText bold>{locationText(loc)}</AppText>
               <AppText variant="small" color={colors.textSecondary}>
-                {loc.source === 'gps' ? `Ubicación detectada automáticamente${loc.accuracy ? ` · precisión ${loc.accuracy} m` : ''}` : 'Ubicación del barrio demo (Lince)'}
+                {loc.source === 'gps'
+                  ? `Ubicación detectada automáticamente${loc.accuracy ? ` · precisión ${loc.accuracy} m` : ''}`
+                  : loc.source === 'last'
+                    ? 'Tu última ubicación conocida'
+                    : 'Barrio demo (Lince) · cámbialo en Perfil'}
               </AppText>
             </View>
           </View>

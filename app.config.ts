@@ -40,8 +40,10 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
+        // Lienzo cuadrado de 288 dp (1152 px) con el logo apilado (casa + "Quadra") dentro del
+        // círculo de 192 dp que Android 12+ deja visible. Un logo horizontal se recorta por los lados.
         image: './assets/splash-icon.png',
-        imageWidth: 240, // logo + palabra "Quadra"
+        imageWidth: 288,
         backgroundColor: '#123023', // verde oscuro de la marca Quadra
       },
     ],
