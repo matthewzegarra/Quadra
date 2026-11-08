@@ -41,7 +41,7 @@ const config: ExpoConfig = {
       'expo-splash-screen',
       {
         image: './assets/splash-icon.png',
-        imageWidth: 160,
+        imageWidth: 240, // logo + palabra "Quadra"
         backgroundColor: '#123023', // verde oscuro de la marca Quadra
       },
     ],
