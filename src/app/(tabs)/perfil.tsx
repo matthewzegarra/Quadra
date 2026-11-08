@@ -63,7 +63,7 @@ export default function PerfilScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.head}>
           <Avatar name={s.displayName} size={72} />
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, minWidth: 0 }}>
             <AppText variant="title" bold accessibilityRole="header">
               {s.displayName ?? 'Vecino'}
             </AppText>
@@ -272,7 +272,8 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.xl, gap: spacing.xl, paddingBottom: 140 },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  aynis: { backgroundColor: colors.accentSoft, borderRadius: radius.lg, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, alignItems: 'center' },
+  // Tarjeta de puntos: como máximo ~35 % del ancho para no aplastar el título/nombre
+  aynis: { backgroundColor: colors.accentSoft, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, alignItems: 'center', maxWidth: '36%', flexShrink: 0 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   toggle: { minHeight: MIN_TOUCH + 8, flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.md, padding: spacing.lg },
   row: { minHeight: MIN_TOUCH + 8, flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.md, paddingHorizontal: spacing.lg },

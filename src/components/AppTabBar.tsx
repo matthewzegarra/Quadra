@@ -24,6 +24,9 @@ const ITEMS: Item[] = [
   { kind: 'tab', route: 'perfil', label: 'Perfil', icon: 'person-outline', iconActive: 'person' },
 ];
 
+/** Etiquetas de la barra: una línea, se achican si no entran (pantallas angostas o letra grande). */
+const LABEL = { numberOfLines: 1, adjustsFontSizeToFit: true, minimumFontScale: 0.7, maxFontSizeMultiplier: 1 } as const;
+
 /** Barra inferior con el botón central "Publicar" (toque 1 de 3). */
 export function AppTabBar({ state, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -54,7 +57,7 @@ export function AppTabBar({ state, navigateToTab }: BottomTabBarProps) {
               <View style={styles.publishCircle}>
                 <Ionicons name="add" size={40} color={colors.ink} />
               </View>
-              <AppText variant="caption" bold>
+              <AppText variant="caption" bold {...LABEL}>
                 Publicar
               </AppText>
             </Pressable>
@@ -74,7 +77,7 @@ export function AppTabBar({ state, navigateToTab }: BottomTabBarProps) {
               style={styles.item}
             >
               <Ionicons name={item.icon} size={28} color={colors.textSecondary} />
-              <AppText variant="caption" bold color={colors.textSecondary}>
+              <AppText variant="caption" bold color={colors.textSecondary} {...LABEL}>
                 {item.label}
               </AppText>
             </Pressable>
@@ -92,7 +95,7 @@ export function AppTabBar({ state, navigateToTab }: BottomTabBarProps) {
             style={styles.item}
           >
             <Ionicons name={active ? item.iconActive : item.icon} size={28} color={tint} />
-            <AppText variant="caption" bold color={tint}>
+            <AppText variant="caption" bold color={tint} {...LABEL}>
               {item.label}
             </AppText>
           </Pressable>
@@ -117,6 +120,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: 2,
+    paddingHorizontal: 2,
   },
   publishCircle: {
     width: 64,

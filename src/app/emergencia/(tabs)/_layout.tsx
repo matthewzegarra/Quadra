@@ -32,7 +32,7 @@ function EmergencyTabBar({ state, navigateToTab }: BottomTabBarProps) {
             style={styles.item}
           >
             <Ionicons name={t.icon} size={28} color={tint} />
-            <AppText variant="caption" bold color={tint} style={{ textAlign: 'center' }}>
+            <AppText variant="caption" bold color={tint} style={{ textAlign: 'center' }} numberOfLines={2} maxFontSizeMultiplier={1}>
               {t.label}
             </AppText>
           </Pressable>

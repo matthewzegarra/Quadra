@@ -27,7 +27,7 @@ export default function FavoresScreen() {
   const header = (
     <View style={{ gap: spacing.lg }}>
       <View style={styles.headRow}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
           <AppText variant="hero" bold accessibilityRole="header">
             Cadena de Favores
           </AppText>
@@ -37,7 +37,7 @@ export default function FavoresScreen() {
           <AppText bold variant="title" color={colors.accentInk}>
             {aynis ?? 0}
           </AppText>
-          <AppText bold variant="small" color={colors.accentInk}>
+          <AppText bold variant="small" color={colors.accentInk} style={{ textAlign: 'center' }}>
             Quadri Points
           </AppText>
         </View>
@@ -74,5 +74,6 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.xl, paddingBottom: 120, gap: spacing.md },
   headRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  aynis: { backgroundColor: colors.accentSoft, borderRadius: radius.lg, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, alignItems: 'center' },
+  // Tarjeta de puntos: como máximo ~35 % del ancho para no aplastar el título/nombre
+  aynis: { backgroundColor: colors.accentSoft, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, alignItems: 'center', maxWidth: '36%', flexShrink: 0 },
 });
