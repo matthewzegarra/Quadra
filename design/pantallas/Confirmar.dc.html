@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ayni · Confirmar publicación</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Atkinson Hyperlegible',system-ui,sans-serif;color:#1C1B19}
+a{color:#1F6F5C}a:hover{color:#174F42}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FBF8F3; display: flex; flex-direction: column; padding: 16px 20px 28px; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; color: #1C1B19">
+
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <a href="Publicar.dc.html" aria-label="Volver" style="width: 48px; height: 48px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E4DED2; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1C1B19" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <span style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 20px; background: #FBEFD9; color: #6B450D; font-size: 15px; font-weight: 700">
+      <span style="width: 8px; height: 8px; border-radius: 4px; background: #E8A33D"></span>
+      <span style="width: 8px; height: 8px; border-radius: 4px; background: #E8A33D"></span>
+      <span style="width: 8px; height: 8px; border-radius: 4px; background: #E8A33D"></span>
+      Toque 3 de 3
+    </span>
+  </div>
+
+  <h1 style="margin: 18px 0 0; font-size: 28px; line-height: 1.15; font-weight: 700">Revisa y publica</h1>
+
+  <div style="margin-top: 14px; padding: 14px; border-radius: 18px; background: #1F6F5C; color: #FFFFFF; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="width: 40px; height: 40px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F6F5C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </span>
+      <span style="font-size: 16px; color: #D6EBE4">Te escuchamos decir:</span>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 3px" aria-hidden="true">
+        <span style="width: 4px; height: 10px; border-radius: 2px; background: #E8A33D"></span>
+        <span style="width: 4px; height: 20px; border-radius: 2px; background: #E8A33D"></span>
+        <span style="width: 4px; height: 14px; border-radius: 2px; background: #E8A33D"></span>
+        <span style="width: 4px; height: 24px; border-radius: 2px; background: #E8A33D"></span>
+        <span style="width: 4px; height: 12px; border-radius: 2px; background: #E8A33D"></span>
+      </div>
+    </div>
+    <span style="font-size: 21px; font-weight: 700; line-height: 1.3">“Vendo lasañas caseras a 15 soles, los sábados en la mañana”</span>
+  </div>
+
+  <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px">
+    <span style="padding: 7px 12px; border-radius: 10px; background: #FBEFD9; color: #6B450D; font-size: 16px; font-weight: 700">Vendo un producto</span>
+    <span style="padding: 7px 12px; border-radius: 10px; background: #EFEAE0; font-size: 16px; font-weight: 700">Comida casera</span>
+  </div>
+
+  <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <label for="titulo" style="font-size: 15px; font-weight: 700; color: #3D3A35">Título</label>
+      <input id="titulo" value="Lasañas caseras de Rosa" style="height: 54px; box-sizing: border-box; padding: 0 14px; border-radius: 14px; border: 2px solid #D8D1C4; background: #FFFFFF; font: 400 18px 'Atkinson Hyperlegible', sans-serif; color: #1C1B19">
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <label for="precio" style="font-size: 15px; font-weight: 700; color: #3D3A35">Precio</label>
+        <input id="precio" value="S/ 15" style="height: 54px; box-sizing: border-box; padding: 0 14px; border-radius: 14px; border: 2px solid #D8D1C4; background: #FFFFFF; font: 400 18px 'Atkinson Hyperlegible', sans-serif; color: #1C1B19">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <label for="horario" style="font-size: 15px; font-weight: 700; color: #3D3A35">Horario</label>
+        <input id="horario" value="Sábados, mañana" style="height: 54px; box-sizing: border-box; padding: 0 14px; border-radius: 14px; border: 2px solid #D8D1C4; background: #FFFFFF; font: 400 18px 'Atkinson Hyperlegible', sans-serif; color: #1C1B19">
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E4DED2">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F6F5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <div style="display: flex; flex-direction: column">
+        <span style="font-size: 17px; font-weight: 700">Tu casa · Lince</span>
+        <span style="font-size: 14px; color: #5C574F">Ubicación detectada automáticamente</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex: 1"></div>
+
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 15px; color: #3D3A35">
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3D3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5.2-2.8M19 13a10 10 0 0 0-2.2-1.6M12 20h.01"/></svg>
+    Sin internet: se guarda y se envía sola cuando vuelva la señal.
+  </div>
+  <a href="Main.dc.html" style="height: 64px; border-radius: 18px; background: #E8A33D; color: #1C1B19; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 21px; font-weight: 700">
+    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1C1B19" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>
+    Publicar
+  </a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

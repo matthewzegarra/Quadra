@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ayni · Cerca de ti</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Atkinson Hyperlegible',system-ui,sans-serif;color:#1C1B19}
+a{color:#1F6F5C}a:hover{color:#174F42}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FBF8F3; display: flex; flex-direction: column; overflow: hidden; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; color: #1C1B19">
+
+  <div style="padding: 20px 20px 10px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 15px; color: #5C574F">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F6F5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        Lince · Sector 3
+      </div>
+      <h1 style="margin: 0; font-size: 30px; line-height: 1.1; font-weight: 700">Cerca de ti</h1>
+    </div>
+    <button style="height: 52px; padding: 0 18px; border: none; border-radius: 26px; background: #B42318; color: #FFFFFF; font: 700 18px 'Atkinson Hyperlegible', sans-serif; display: flex; align-items: center; gap: 8px; cursor: pointer">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17v.5"/></svg>
+      SOS
+    </button>
+  </div>
+
+  <div style="margin: 0 20px; padding: 8px 12px; border-radius: 10px; background: #EFEAE0; display: flex; align-items: center; gap: 8px; font-size: 15px; color: #3D3A35">
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3D3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5.2-2.8M19 13a10 10 0 0 0-2.2-1.6M12 20h.01"/></svg>
+    <span>Sin conexión · <b>2 publicaciones</b> esperando enviarse</span>
+  </div>
+
+  <div style="margin: 12px 20px 0; display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 8px 0 16px; border-radius: 16px; background: #FFFFFF; border: 2px solid #D8D1C4">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C574F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    <label for="buscar" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Buscar</label>
+    <input id="buscar" placeholder="¿Qué necesitas? Gasfitero, lasañas..." style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font: 400 18px 'Atkinson Hyperlegible', sans-serif; color: #1C1B19">
+    <button aria-label="Buscar con tu voz" style="width: 44px; height: 44px; border: none; border-radius: 12px; background: #1F6F5C; display: flex; align-items: center; justify-content: center; cursor: pointer">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+    </button>
+  </div>
+
+  <div style="margin-top: 12px; padding: 0 20px; display: flex; gap: 8px; overflow: hidden">
+    <button style="flex-shrink: 0; height: 44px; padding: 0 14px; border-radius: 22px; border: 2px solid #1F6F5C; background: #1F6F5C; color: #FFFFFF; font: 700 16px 'Atkinson Hyperlegible', sans-serif; display: flex; align-items: center; gap: 6px">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M9 21l2-6 3 2v4M7 12l3-4 4 1 2 4"/></svg>
+      A pie · 1.5 km
+    </button>
+    <button style="flex-shrink: 0; height: 44px; padding: 0 14px; border-radius: 22px; border: 2px solid #D8D1C4; background: #FFFFFF; color: #1C1B19; font: 700 16px 'Atkinson Hyperlegible', sans-serif">Gasfitería</button>
+    <button style="flex-shrink: 0; height: 44px; padding: 0 14px; border-radius: 22px; border: 2px solid #D8D1C4; background: #FFFFFF; color: #1C1B19; font: 700 16px 'Atkinson Hyperlegible', sans-serif">Comida casera</button>
+    <button style="flex-shrink: 0; height: 44px; padding: 0 14px; border-radius: 22px; border: 2px solid #D8D1C4; background: #FFFFFF; color: #1C1B19; font: 700 16px 'Atkinson Hyperlegible', sans-serif">Clases</button>
+  </div>
+
+  <div style="margin: 12px 20px 0; position: relative; height: 214px; border-radius: 18px; overflow: hidden; background: #D9D2C4">
+    <div style="position: absolute; inset: 0; padding: 10px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px">
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #CFE3C8; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+      <div style="background: #CFE3C8; border-radius: 6px"></div>
+      <div style="background: #EFEAE0; border-radius: 6px"></div>
+    </div>
+
+    <div style="position: absolute; left: 160px; top: 92px; width: 22px; height: 22px; border-radius: 50%; background: #2563EB; border: 4px solid #FFFFFF; box-shadow: 0 0 0 10px rgba(37,99,235,0.18)"></div>
+
+    <div style="position: absolute; left: 228px; top: 40px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px">
+      <div style="padding: 6px 10px; border-radius: 10px; background: #1C1B19; color: #FFFFFF; font-size: 14px; font-weight: 700; white-space: nowrap">Luis · Gasfitero · 5 vistos buenos</div>
+      <div style="margin-left: 10px; width: 38px; height: 38px; border-radius: 50%; background: #1F6F5C; border: 3px solid #FFFFFF; display: flex; align-items: center; justify-content: center">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>
+      </div>
+    </div>
+    <div style="position: absolute; left: 70px; top: 138px; width: 38px; height: 38px; border-radius: 50%; background: #E8A33D; border: 3px solid #FFFFFF; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1B19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6v-3zM8 7c0-1 1-1 1-2M12 7c0-1 1-1 1-2"/></svg>
+    </div>
+    <div style="position: absolute; left: 34px; top: 30px; width: 38px; height: 38px; border-radius: 50%; background: #6D4FC2; border: 3px solid #FFFFFF; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"/><path d="M8 7h7"/></svg>
+    </div>
+    <div style="position: absolute; left: 290px; top: 150px; width: 38px; height: 38px; border-radius: 50%; background: #3D3A35; border: 3px solid #FFFFFF; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l2 2"/></svg>
+    </div>
+
+    <div style="position: absolute; right: 10px; bottom: 10px; display: flex; border-radius: 12px; overflow: hidden; border: 2px solid #1F6F5C; background: #FFFFFF">
+      <button style="height: 40px; padding: 0 14px; border: none; background: #1F6F5C; color: #FFFFFF; font: 700 15px 'Atkinson Hyperlegible', sans-serif">Mapa</button>
+      <button style="height: 40px; padding: 0 14px; border: none; background: #FFFFFF; color: #1F6F5C; font: 700 15px 'Atkinson Hyperlegible', sans-serif">Lista</button>
+    </div>
+  </div>
+
+  <div style="flex: 1; min-height: 0; overflow: hidden; padding: 14px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <a href="Detalle.dc.html" style="text-decoration: none; color: #1C1B19; display: flex; gap: 12px; padding: 12px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4DED2">
+      <div style="width: 56px; height: 56px; flex-shrink: 0; border-radius: 14px; background: #E3EFEB; display: flex; align-items: center; justify-content: center">
+        <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1F6F5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>
+      </div>
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+        <div style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 18px; font-weight: 700">Luis Torres · Gasfitero</span></div>
+        <span style="font-size: 15px; color: #5C574F">A 2 cuadras · 3 min a pie · Desde S/ 40</span>
+        <span style="align-self: flex-start; display: flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 8px; background: #E3EFEB; color: #174F42; font-size: 14px; font-weight: 700">
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#174F42" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>
+          Visto Bueno Vecinal · 5
+        </span>
+      </div>
+    </a>
+    <div style="display: flex; gap: 12px; padding: 12px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4DED2">
+      <div style="width: 56px; height: 56px; flex-shrink: 0; border-radius: 14px; background: #FBEFD9; display: flex; align-items: center; justify-content: center">
+        <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8A5A12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6v-3zM8 7c0-1 1-1 1-2M12 7c0-1 1-1 1-2"/></svg>
+      </div>
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 18px; font-weight: 700">Lasañas caseras de Rosa</span>
+        <span style="font-size: 15px; color: #5C574F">A 4 cuadras · 5 min a pie · S/ 15 · sábados</span>
+        <span style="align-self: flex-start; display: flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 8px; background: #E3EFEB; color: #174F42; font-size: 14px; font-weight: 700">
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#174F42" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>
+          Visto Bueno Vecinal · 7
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <nav style="height: 88px; flex-shrink: 0; background: #FFFFFF; border-top: 1px solid #E4DED2; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" style="text-decoration: none; color: #1F6F5C; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; font-weight: 700">
+      <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1F6F5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      Cerca
+    </a>
+    <a href="Favores.dc.html" style="text-decoration: none; color: #5C574F; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; font-weight: 700">
+      <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5C574F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+      Favores
+    </a>
+    <a href="Publicar.dc.html" style="text-decoration: none; color: #1C1B19; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 13px; font-weight: 700; margin-top: -26px">
+      <span style="width: 64px; height: 64px; border-radius: 50%; background: #E8A33D; border: 4px solid #FBF8F3; display: flex; align-items: center; justify-content: center">
+        <svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1C1B19" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      </span>
+      Publicar
+    </a>
+    <a href="Emergencia.dc.html" style="text-decoration: none; color: #5C574F; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; font-weight: 700">
+      <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5C574F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17v.5"/></svg>
+      Emergencia
+    </a>
+    <a href="Main.dc.html" style="text-decoration: none; color: #5C574F; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; font-weight: 700">
+      <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5C574F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+      Perfil
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
