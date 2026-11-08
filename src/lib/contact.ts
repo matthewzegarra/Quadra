@@ -1,5 +1,6 @@
 import { Linking } from 'react-native';
 import type { LatLng } from '@/lib/geo';
+import { supabase } from '@/lib/supabase';
 
 const DEMO_WHATSAPP = process.env.EXPO_PUBLIC_DEMO_WHATSAPP;
 
@@ -16,6 +17,24 @@ export function normalizePhone(raw: string | null | undefined): string | null {
  * Abre WhatsApp con mensaje prellenado. Sin número (datos demo sin teléfonos reales)
  * usa EXPO_PUBLIC_DEMO_WHATSAPP o abre WhatsApp para elegir el contacto.
  */
+/** Teléfono de un servicio aprobado. No está en el listado: se pide al tocarlo. */
+export async function revealListingPhone(listingId: string, local: string | null | undefined): Promise<string | null> {
+  if (local) return local;
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('contact_listing', { p_id: listingId });
+  if (error || typeof data !== 'string') return null;
+  return data;
+}
+
+/** Ubicación y teléfono de una oferta ya aceptada, solo para las dos personas. */
+export async function revealAcceptedOffer(responseId: string): Promise<{ lat: number; lng: number; phone: string | null } | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('contact_response', { p_id: responseId });
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row || typeof row.lat !== 'number') return null;
+  return { lat: row.lat, lng: row.lng, phone: typeof row.phone === 'string' ? row.phone : null };
+}
+
 export async function openWhatsApp(phone: string | null | undefined, message: string) {
   const num = normalizePhone(phone) ?? normalizePhone(DEMO_WHATSAPP);
   const text = encodeURIComponent(message);

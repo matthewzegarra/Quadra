@@ -18,7 +18,7 @@ export type MapPin = {
   color: string;
   icon?: keyof typeof Ionicons.glyphMap;
   text?: string; // número o "SOS" o iniciales
-  shape?: 'circle' | 'diamond' | 'square';
+  shape?: 'circle' | 'diamond' | 'square' | 'zone';
   pulse?: boolean;
   onPress?: () => void;
   label?: string;
@@ -97,6 +97,21 @@ export function QuadraMap({
 }
 
 function PinView({ pin }: { pin: MapPin }) {
+  if (pin.shape === 'zone') {
+    return (
+      <View accessibilityLabel={pin.label} style={[styles.zone, { backgroundColor: pin.color + '33', borderColor: pin.color }]}>
+        <View style={[styles.zoneDot, { backgroundColor: pin.color }]}>
+          {pin.text ? (
+            <AppText bold variant="caption" color={colors.white}>
+              {pin.text}
+            </AppText>
+          ) : pin.icon ? (
+            <Ionicons name={pin.icon} size={14} color={colors.white} />
+          ) : null}
+        </View>
+      </View>
+    );
+  }
   const size = pin.text === 'SOS' ? 52 : 40;
   const shapeStyle: ViewStyle =
     pin.shape === 'diamond'
@@ -127,6 +142,23 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg + 4,
     overflow: 'hidden',
     backgroundColor: colors.surfaceMuted,
+  },
+  zone: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zoneDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
   },
   pin: {
     alignItems: 'center',

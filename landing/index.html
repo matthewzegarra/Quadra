@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Quadra · App vecinal</title>
-  <meta name="description" content="Encuentra servicios recomendados por tus vecinos, intercambia favores sin dinero y, en una emergencia, mantén a tu barrio conectado aunque no haya internet." />
+  <title>Quadra · Tu cuadra, conectada</title>
+  <meta name="description" content="Encuentra ayuda y servicios cerca de casa, recomendados por tus vecinos. En una emergencia, tu barrio sigue conectado aunque no haya internet." />
   <meta property="og:title" content="Quadra · Hoy te ayudo, mañana me ayudas" />
-  <meta property="og:description" content="App vecinal: servicios cerca de casa, Cadena de Favores y Modo Emergencia sin internet." />
+  <meta property="og:description" content="Servicios cerca de casa, Cadena de Favores y Modo Emergencia sin internet." />
   <meta name="theme-color" content="#123023" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,204 +15,216 @@
   <link rel="apple-touch-icon" href="logo.png" />
   <style>
     :root {
-      --primary: #123023; --primary-dark: #0B2018; --primary-soft: #E4EEE7;
-      --accent: #CEED68; --accent-soft: #F1F9D6; --accent-ink: #3E5210;
-      --danger: #B42318; --danger-soft: #FDE8E4;
-      --bg: #F8FAF5; --surface: #FFFFFF; --muted: #ECF0E8;
-      --ink: #1C1B19; --ink-soft: #3D3A35; --text-2: #5C574F; --border: #DFE5DA;
+      --forest: #123023;
+      --forest-deep: #0b2018;
+      --lime: #cfee68;
+      --cream: #f3f1e8;
+      --ink: #123023;
+      --muted: #3d5246;
+      --line: #d9d6c8;
+      --white: #fffcf6;
+      --danger: #9d2c22;
     }
     * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
+    html { scroll-behavior: smooth; }
     body {
-      margin: 0; background: var(--bg); color: var(--ink);
-      font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 18px; line-height: 1.5;
+      margin: 0;
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
+      font-size: 18px;
+      line-height: 1.45;
     }
     a { color: inherit; }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
-    header.top { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; gap: 12px; }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 24px; text-decoration: none; }
-    .logo { width: 40px; height: 40px; border-radius: 12px; display: block; }
-    .pill { display: inline-flex; align-items: center; gap: 8px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; padding: 6px 14px; border-radius: 999px; font-size: 15px; }
+    img { max-width: 100%; height: auto; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+    header.top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 0; gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 26px; text-decoration: none; letter-spacing: -0.3px; }
+    .brand img { width: 44px; height: 44px; border-radius: 12px; }
+    .event { font-size: 14px; font-weight: 700; color: var(--muted); }
 
-    .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: center; padding: 32px 0 56px; }
-    h1 { font-size: clamp(36px, 6vw, 60px); line-height: 1.05; margin: 16px 0; letter-spacing: -0.5px; }
-    h1 em { font-style: normal; color: var(--primary); }
-    .lead { font-size: 21px; color: var(--ink-soft); max-width: 36ch; }
-    .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; padding: 0 24px; border-radius: 16px; font-weight: 700; font-size: 19px; text-decoration: none; border: 2px solid transparent; }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { background: var(--primary-dark); }
-    .btn-outline { border-color: var(--primary); color: var(--primary); background: var(--surface); }
-    .small { font-size: 15px; color: var(--text-2); }
+    .hero {
+      display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 36px;
+      align-items: center; padding: 12px 0 64px;
+    }
+    .kicker {
+      display: inline-block; background: var(--lime); color: var(--forest);
+      font-weight: 700; border-radius: 999px; padding: 6px 14px; font-size: 15px;
+    }
+    h1 { font-size: clamp(40px, 6vw, 64px); line-height: 1.02; margin: 14px 0 12px; letter-spacing: -1px; }
+    .lead { font-size: 22px; max-width: 28ch; margin: 0; color: var(--forest); }
+    .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      min-height: 60px; padding: 0 22px; border-radius: 16px;
+      font-weight: 700; font-size: 19px; text-decoration: none; border: 2px solid transparent;
+    }
+    .btn-primary { background: var(--forest); color: var(--lime); }
+    .btn-primary:hover { background: var(--forest-deep); }
+    .btn-quiet { background: transparent; color: var(--forest); border-color: var(--forest); }
+    .fine { margin: 10px 0 0; color: var(--muted); font-size: 15px; }
 
-    .qr-card { background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 28px; text-align: center; box-shadow: 0 20px 50px -30px rgba(28,27,25,.35); }
-    .quadri { display: block; width: 132px; height: auto; margin: -8px auto 12px; }
-    #qr { width: 220px; height: 220px; margin: 12px auto; display: grid; place-items: center; }
+    .qr-card {
+      background: var(--white); border-radius: 28px; padding: 22px 22px 18px;
+      text-align: center; border: 1px solid var(--line);
+    }
+    .quadri { width: 148px; height: auto; margin: 0 auto 4px; display: block; }
+    #qr { width: 200px; height: 200px; margin: 8px auto; }
     #qr svg { width: 100%; height: 100%; }
 
-    section { padding: 56px 0; }
-    h2 { font-size: clamp(28px, 4vw, 38px); line-height: 1.15; margin: 0 0 12px; }
-    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 28px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; }
-    .card h3 { margin: 12px 0 6px; font-size: 21px; }
-    .card p { margin: 0; color: var(--text-2); }
-    .icon { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; }
-    .icon svg { width: 28px; height: 28px; }
+    section { padding: 8px 0 56px; }
+    h2 { font-size: clamp(28px, 4vw, 40px); line-height: 1.1; margin: 0 0 8px; letter-spacing: -0.4px; }
+    .sub { margin: 0; color: var(--muted); max-width: 46ch; }
 
-    .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
-    .mode { border-radius: 24px; padding: 28px; }
-    .mode.day { background: var(--primary-soft); }
-    .mode.sos { background: var(--danger); color: #fff; }
-    .mode h3 { margin: 0 0 12px; font-size: 24px; }
-    .mode ul { margin: 0; padding-left: 20px; }
-    .mode li { margin: 6px 0; }
+    .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
+    .mode { border-radius: 24px; padding: 24px; }
+    .mode h3 { margin: 0 0 8px; font-size: 24px; }
+    .mode p { margin: 0; }
+    .mode.day { background: var(--lime); }
+    .mode.sos { background: var(--forest); color: var(--cream); }
+    .mode ul { margin: 10px 0 0; padding-left: 18px; }
+    .mode li { margin: 4px 0; }
 
-    .steps { counter-reset: s; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 28px; }
-    .step { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; position: relative; }
-    .step::before { counter-increment: s; content: counter(s); position: absolute; top: -14px; left: 20px; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--ink); font-weight: 700; display: grid; place-items: center; }
-    .phone { margin: 12px auto 16px; width: 150px; height: 230px; border-radius: 24px; border: 6px solid var(--ink); background: var(--bg); padding: 14px 10px; display: flex; flex-direction: column; gap: 8px; }
-    .phone .bar { height: 10px; border-radius: 5px; background: var(--muted); }
-    .phone .hl { background: var(--accent-soft); border: 2px solid var(--accent); border-radius: 10px; padding: 8px; font-size: 12px; font-weight: 700; line-height: 1.2; }
-    .phone .toggle { display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 700; }
-    .phone .sw { width: 30px; height: 18px; border-radius: 9px; background: var(--primary); position: relative; }
-    .phone .sw::after { content: ''; position: absolute; right: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
-    .phone .okbtn { margin-top: auto; background: var(--primary); color: #fff; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 700; padding: 8px; }
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin-top: 22px; }
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
+    .card h3 { margin: 10px 0 4px; font-size: 20px; }
+    .card p { margin: 0; color: var(--muted); }
+    .mark {
+      width: 48px; height: 48px; border-radius: 14px; background: var(--lime);
+      display: grid; place-items: center; font-weight: 700;
+    }
 
-    .video { aspect-ratio: 9 / 16; max-width: 360px; margin: 28px auto 0; border-radius: 28px; overflow: hidden; background: var(--ink); display: grid; place-items: center; color: #fff; text-align: center; padding: 24px; }
-    .video iframe, .video video { width: 100%; height: 100%; border: 0; }
+    .steps { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin-top: 22px; }
+    .step { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 22px 18px 18px; }
+    .num {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--lime); color: var(--forest);
+      display: grid; place-items: center; font-weight: 700; margin-bottom: 10px;
+    }
+    .step p { margin: 6px 0 0; color: var(--muted); }
 
-    .mesh { display: flex; align-items: center; justify-content: center; gap: 0; margin: 28px 0 8px; flex-wrap: wrap; }
-    .node { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; }
-    .link { width: 56px; border-top: 4px dashed var(--primary); }
+    .video-slot {
+      margin-top: 18px; border-radius: 24px; background: var(--forest); color: var(--cream);
+      min-height: 180px; display: grid; place-items: center; text-align: center; padding: 24px;
+    }
+    .video-slot iframe, .video-slot video { width: min(360px, 100%); aspect-ratio: 9/16; border: 0; border-radius: 16px; }
 
-    footer { border-top: 1px solid var(--border); padding: 32px 0 48px; color: var(--text-2); font-size: 15px; }
-    footer .row { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; }
+    footer { border-top: 1px solid var(--line); padding: 28px 0 48px; color: var(--muted); font-size: 15px; }
+    footer .row { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+    footer a { font-weight: 700; }
 
-    @media (max-width: 760px) {
-      .hero { grid-template-columns: 1fr; gap: 28px; padding-top: 8px; }
-      .modes { grid-template-columns: 1fr; }
+    @media (max-width: 800px) {
+      .hero, .modes, .grid, .steps { grid-template-columns: 1fr; }
       .btn { width: 100%; }
-      .link { width: 28px; }
-      .node { width: 54px; height: 54px; }
+      h1 { font-size: 40px; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header class="top">
-      <a class="brand" href="#">
-        <img class="logo" src="logo.png" alt="" width="40" height="40" />
+      <a class="brand" href="#inicio">
+        <img src="logo.png" alt="" width="44" height="44" />
         Quadra
       </a>
-      <span class="pill">Hackathon UTP · El Comercio 2026</span>
+      <span class="event">PEAK · Hackathon UTP · El Comercio 2026</span>
     </header>
 
-    <main>
+    <main id="inicio">
       <div class="hero">
         <div>
-          <span class="pill" style="background:var(--primary-soft);color:var(--primary-dark)">Hoy te ayudo, mañana me ayudas</span>
-          <h1>Tu barrio, <em>más cerca</em> y conectado incluso sin internet.</h1>
-          <p class="lead">Encuentra gasfiteros, clases y comida casera recomendados por tus vecinos, intercambia favores sin dinero y, en una emergencia, pide ayuda aunque no haya señal.</p>
+          <span class="kicker">Hoy te ayudo, mañana me ayudas</span>
+          <h1>Tu cuadra, conectada.</h1>
+          <p class="lead">Servicios cerca de casa, favores sin dinero y ayuda en una emergencia, aunque no haya internet.</p>
           <div class="cta">
             <a class="btn btn-primary" id="download" href="#" data-apk>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
               Descargar para Android
             </a>
-            <a class="btn btn-outline" href="#instalar">Cómo instalar</a>
+            <a class="btn btn-quiet" href="#instalar">Cómo instalar</a>
           </div>
-          <p class="small" id="version">APK gratuito · Android 8 o superior · sin publicidad</p>
+          <p class="fine" id="version">Gratis · Android 8 o superior · sin publicidad</p>
         </div>
         <div class="qr-card">
-          <img class="quadri" src="quadri.png" alt="Quadri, la mascota de Quadra: un perrito verde con collar lima" width="132" height="160" />
-          <strong style="font-size:20px">Escanéalo con tu celular</strong>
-          <div id="qr" role="img" aria-label="Código QR para abrir esta página en el celular"></div>
-          <p class="small" style="margin:0">Abre esta página en tu celular para descargar Quadra.</p>
+          <img class="quadri" src="quadri.png" alt="Quadri, la mascota de Quadra: un perrito verde con collar lima" width="148" height="180" />
+          <strong>Escanéalo con tu celular</strong>
+          <div id="qr" role="img" aria-label="Código QR para abrir esta página"></div>
+          <p class="fine">Abre esta página y descarga Quadra.</p>
         </div>
       </div>
 
       <section>
-        <h2>Una app, dos módulos que evolucionan en emergencia</h2>
+        <h2>Dos momentos. La misma cuadra.</h2>
         <div class="modes">
           <div class="mode day">
             <h3>Día a día</h3>
+            <p>Lo que ya existe en tu barrio, a pocas cuadras.</p>
             <ul>
-              <li><strong>Servicios de Proximidad</strong>: oficios y productos del barrio con el <strong>Visto Bueno Vecinal</strong>.</li>
-              <li><strong>Cadena de Favores</strong>: presta, dona, intercambia y comparte movilidad al colegio, sin dinero.</li>
-              <li>Todo a pie: distancia en cuadras y minutos caminando.</li>
+              <li>Oficios y comida casera con Visto Bueno Vecinal.</li>
+              <li>Préstamos, donaciones y movilidad al colegio, sin dinero.</li>
             </ul>
           </div>
           <div class="mode sos">
-            <h3>Modo Emergencia</h3>
+            <h3>Emergencia</h3>
+            <p>Tu celular avisa al de tu vecino, sin antenas.</p>
             <ul>
-              <li><strong>Tablero de Ayuda Humanitaria</strong>: SOS, “Estoy bien” y vecinos vulnerables en el mapa.</li>
-              <li><strong>Economía Solidaria</strong>: agua, baldes, medicinas, refugio, energía.</li>
-              <li><strong>Directorio de apoyo</strong>: enfermera, electricista, generador, camioneta.</li>
+              <li>SOS, “Estoy bien” y vecinos que viven solos.</li>
+              <li>Agua, baldes, medicinas y quién puede ayudar.</li>
             </ul>
           </div>
         </div>
       </section>
 
       <section>
-        <h2>Por qué Quadra es distinta</h2>
+        <h2>Por qué Quadra</h2>
+        <p class="sub">Poca letra. Botones grandes. Hecha para cualquier vecino.</p>
         <div class="grid">
-          <div class="card">
-            <div class="icon" style="background:var(--primary-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#123023" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/><path d="m6.5 12 5.5-5.5L17.5 12 12 17.5z"/></svg></div>
-            <h3>Red vecinal sin internet</h3>
-            <p>Los avisos viajan de celular en celular por Bluetooth y Wi-Fi Direct. Cuando alguien recupera señal, sube todo a la nube.</p>
-          </div>
-          <div class="card">
-            <div class="icon" style="background:var(--accent-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#3E5210" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div>
-            <h3>Publica con tu voz</h3>
-            <p>Di “vendo lasañas a 15 soles los sábados” y la app arma la publicación. Pensado para adultos mayores.</p>
-          </div>
-          <div class="card">
-            <div class="icon" style="background:var(--primary-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#123023" stroke-width="2.4" stroke-linecap="round"><path d="m5 12 5 5 9-10"/></svg></div>
-            <h3>Visto Bueno Vecinal</h3>
-            <p>Solo pueden recomendar vecinos que viven a menos de 1.5 km y ya usaron el servicio.</p>
-          </div>
-          <div class="card">
-            <div class="icon" style="background:var(--muted)"><svg viewBox="0 0 24 24" fill="none" stroke="#3D3A35" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
-            <h3>3 toques para publicar</h3>
-            <p>Botón grande, opciones claras y todo prellenado. Letra grande y lectura en voz alta.</p>
-          </div>
+          <article class="card">
+            <div class="mark" aria-hidden="true">1</div>
+            <h3>Sin internet</h3>
+            <p>El aviso viaja de celular en celular por Bluetooth. Quien recupera señal lo sube.</p>
+          </article>
+          <article class="card">
+            <div class="mark" aria-hidden="true">2</div>
+            <h3>Con la voz</h3>
+            <p>Di “vendo lasañas a 15 soles los sábados”. La app arma la publicación.</p>
+          </article>
+          <article class="card">
+            <div class="mark" aria-hidden="true">3</div>
+            <h3>Confianza</h3>
+            <p>Solo recomienda quien vive a menos de 1.5 km y ya usó el servicio.</p>
+          </article>
         </div>
-        <div class="mesh" aria-label="Un SOS viaja de Rosa a Miguel y luego a ti, sin internet">
-          <div class="node" style="background:var(--accent)">RQ</div><div class="link"></div>
-          <div class="node" style="background:#fff;border:3px solid var(--primary)">MR</div><div class="link"></div>
-          <div class="node" style="background:var(--primary);color:#fff">Tú</div>
-        </div>
-        <p class="small" style="text-align:center;margin:0">Un SOS llega de celular en celular, sin internet ni antenas.</p>
       </section>
 
       <section id="instalar">
         <h2>Instálala en 3 pasos</h2>
-        <p class="small">Quadra aún no está en la Play Store. Android te pedirá permiso para instalar una app descargada.</p>
+        <p class="sub">Quadra todavía no está en la Play Store. Android te pedirá permiso.</p>
         <div class="steps">
-          <div class="step">
-            <div class="phone" aria-hidden="true"><div class="bar"></div><div class="hl">⬇ quadra.apk<br/>Descarga completa</div><div class="bar"></div><div class="okbtn">Abrir</div></div>
-            <strong>Descarga el APK</strong>
-            <p class="small" style="margin:4px 0 0">Toca “Descargar para Android” y luego “Abrir” cuando termine.</p>
-          </div>
-          <div class="step">
-            <div class="phone" aria-hidden="true"><div class="bar"></div><div class="hl">Por tu seguridad, tu teléfono no puede instalar apps de esta fuente</div><div class="toggle">Permitir de esta fuente <span class="sw"></span></div><div class="okbtn">Configuración</div></div>
-            <strong>Permite “fuentes desconocidas”</strong>
-            <p class="small" style="margin:4px 0 0">Toca “Configuración” y activa “Permitir de esta fuente” para tu navegador.</p>
-          </div>
-          <div class="step">
-            <div class="phone" aria-hidden="true"><div class="bar"></div><div class="hl" style="background:var(--primary-soft);border-color:var(--primary)">¿Quieres instalar Quadra?</div><div class="bar"></div><div class="okbtn">Instalar</div></div>
-            <strong>Instala y abre Quadra</strong>
-            <p class="small" style="margin:4px 0 0">Toca “Instalar”. Al abrirla, un tutorial de 3 pasos te enseña a usarla.</p>
-          </div>
+          <article class="step">
+            <div class="num">1</div>
+            <strong>Descarga el archivo</strong>
+            <p>Toca “Descargar para Android” y luego “Abrir”.</p>
+          </article>
+          <article class="step">
+            <div class="num">2</div>
+            <strong>Permite esta fuente</strong>
+            <p>En Ajustes, activa “Permitir de esta fuente” para tu navegador.</p>
+          </article>
+          <article class="step">
+            <div class="num">3</div>
+            <strong>Abre Quadra</strong>
+            <p>Un tutorial de 3 pantallas te enseña a usarla. Quadri te acompaña.</p>
+          </article>
         </div>
       </section>
 
       <section>
-        <h2 style="text-align:center">Mira la demo</h2>
-        <div class="video" id="video">
-          <div>
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
-            <p style="margin:8px 0 0">El video de la demo se publica aquí.</p>
-          </div>
+        <h2>La demo</h2>
+        <div class="video-slot" id="video">
+          <p>El video de la demo se publica aquí.</p>
         </div>
       </section>
     </main>
@@ -225,26 +237,21 @@
     </footer>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script src="qrcode.js"></script>
   <script>
-    // Configuración: completar con el repositorio público y (opcional) el video.
     const CONFIG = {
       repo: 'matthewzegarra/Quadra',
       apkName: 'quadra.apk',
-      videoUrl: '', // ej. URL embebible de YouTube (https://www.youtube.com/embed/...)
-      // Respaldo si aún no hay release público en GitHub: APK compilado por EAS
+      videoUrl: '',
       fallbackApk: 'https://expo.dev/artifacts/eas/L0-I9EXH1Ix0pv1zPIm1TrUclvmfJcniqyPsBuiNXgo.apk',
     };
 
-    const configured = !CONFIG.repo.includes('OWNER');
-    const repoUrl = configured ? `https://github.com/${CONFIG.repo}` : '#';
-    const releaseApk = configured ? `${repoUrl}/releases/latest/download/${CONFIG.apkName}` : '#';
-    const setApk = (url) => document.querySelectorAll('[data-apk]').forEach((a) => (a.href = url));
-    // Mientras se consulta GitHub, usamos el respaldo (si existe) para que el botón nunca dé 404
+    const repoUrl = 'https://github.com/' + CONFIG.repo;
+    const releaseApk = repoUrl + '/releases/latest/download/' + CONFIG.apkName;
+    const setApk = (url) => document.querySelectorAll('[data-apk]').forEach((a) => { a.href = url; });
     setApk(CONFIG.fallbackApk || releaseApk);
-    document.querySelectorAll('[data-repo]').forEach((a) => (a.href = repoUrl));
+    document.querySelectorAll('[data-repo]').forEach((a) => { a.href = repoUrl; });
 
-    // QR que apunta a esta misma página
     try {
       const qr = qrcode(0, 'M');
       qr.addData(location.href.split('#')[0]);
@@ -254,22 +261,25 @@
       document.getElementById('qr').textContent = location.href;
     }
 
-    if (CONFIG.videoUrl) {
-      document.getElementById('video').innerHTML = `<iframe src="${CONFIG.videoUrl}" title="Demo de Quadra" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+    if (CONFIG.videoUrl.indexOf('https://www.youtube.com/embed/') === 0 || CONFIG.videoUrl.indexOf('https://www.youtube-nocookie.com/embed/') === 0) {
+      const slot = document.getElementById('video');
+      slot.textContent = '';
+      const frame = document.createElement('iframe');
+      frame.src = CONFIG.videoUrl;
+      frame.title = 'Demo de Quadra';
+      frame.allowFullscreen = true;
+      slot.appendChild(frame);
     }
 
-    // Versión publicada (si la API de GitHub responde)
-    if (configured) {
-      fetch(`https://api.github.com/repos/${CONFIG.repo}/releases/latest`)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((rel) => {
-          const asset = rel?.assets?.find((a) => a.name === CONFIG.apkName);
-          if (!rel?.tag_name || !asset) return; // sin release público: se queda el respaldo
-          setApk(releaseApk);
-          document.getElementById('version').textContent = `Versión ${rel.tag_name} · APK gratuito · Android 8 o superior`;
-        })
-        .catch(() => {});
-    }
+    fetch('https://api.github.com/repos/' + CONFIG.repo + '/releases/latest')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((rel) => {
+        const asset = rel && rel.assets && rel.assets.find((a) => a.name === CONFIG.apkName);
+        if (!rel || !rel.tag_name || !asset) return;
+        setApk(releaseApk);
+        document.getElementById('version').textContent = 'Versión ' + rel.tag_name + ' · gratis · Android 8 o superior';
+      })
+      .catch(() => {});
   </script>
 </body>
 </html>

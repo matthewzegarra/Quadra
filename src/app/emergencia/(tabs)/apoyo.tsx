@@ -7,7 +7,7 @@ import { distanceText } from '@/components/ListingCard';
 import { Card, EmptyState, IconTile } from '@/components/ui';
 import { useNearbyListings } from '@/data/repositories/listings';
 import { findItem, firstName, LISTING_CATEGORIES } from '@/features/catalog';
-import { openWhatsApp } from '@/lib/contact';
+import { openWhatsApp, revealListingPhone } from '@/lib/contact';
 import { useLocationStore } from '@/lib/location';
 import { colors, spacing } from '@/theme/tokens';
 
@@ -44,7 +44,10 @@ export default function ApoyoScreen() {
               <BigButton
                 label={`Escribirle a ${firstName(item.owner_name)}`}
                 icon="logo-whatsapp"
-                onPress={() => openWhatsApp(item.whatsapp, `¡Hola ${firstName(item.owner_name)}! Te escribo desde Quadra (Modo Emergencia). ¿Puedes ayudarnos? Necesitamos: ${item.emergency_capability ?? cat.label}.`)}
+                onPress={async () => {
+                  const phone = await revealListingPhone(item.id, item.whatsapp);
+                  await openWhatsApp(phone, `¡Hola ${firstName(item.owner_name)}! Te escribo desde Quadra (Modo Emergencia). ¿Puedes ayudarnos? Necesitamos: ${item.emergency_capability ?? cat.label}.`);
+                }}
               />
             </Card>
           );

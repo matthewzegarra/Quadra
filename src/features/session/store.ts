@@ -9,6 +9,10 @@ const K = {
   localUserId: 'ayni.localUserId',
   authUserId: 'ayni.authUserId',
   displayName: 'ayni.displayName',
+  firstName: 'ayni.firstName',
+  lastName: 'ayni.lastName',
+  email: 'ayni.email',
+  dniLast4: 'ayni.dniLast4',
   whatsapp: 'ayni.whatsapp',
   onboardingDone: 'ayni.onboardingDone',
   coachDone: 'ayni.coachDone',
@@ -37,6 +41,10 @@ type SessionState = {
   /** id de Supabase Auth (anónimo). Se fija recién cuando los datos locales ya fueron remapeados. */
   authUserId: string | null;
   displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  dniLast4: string | null;
   whatsapp: string | null;
   onboardingDone: boolean;
   coachDone: boolean;
@@ -45,8 +53,10 @@ type SessionState = {
   meshEnabled: boolean;
   /** Modo emergencia abierto localmente (botón SOS / pestaña Emergencia). */
   localEmergency: boolean;
-  setAuthUserId: (id: string) => void;
+  setAuthUserId: (id: string | null) => void;
   setIdentity: (name: string, whatsapp: string | null) => void;
+  setAccount: (input: { firstName: string; lastName: string; email: string; dniLast4: string | null; whatsapp: string | null }) => void;
+  clearAuth: () => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
   completeCoach: () => void;
@@ -60,6 +70,10 @@ export const useSession = create<SessionState>((set) => ({
   localUserId: ensureLocalUserId(),
   authUserId: Storage.getItemSync(K.authUserId),
   displayName: Storage.getItemSync(K.displayName),
+  firstName: Storage.getItemSync(K.firstName),
+  lastName: Storage.getItemSync(K.lastName),
+  email: Storage.getItemSync(K.email),
+  dniLast4: Storage.getItemSync(K.dniLast4),
   whatsapp: Storage.getItemSync(K.whatsapp),
   onboardingDone: readBool(K.onboardingDone),
   coachDone: readBool(K.coachDone),
@@ -68,7 +82,8 @@ export const useSession = create<SessionState>((set) => ({
   meshEnabled: readBool(K.meshEnabled),
   localEmergency: readBool(K.localEmergency),
   setAuthUserId: (authUserId) => {
-    Storage.setItemSync(K.authUserId, authUserId);
+    if (authUserId) Storage.setItemSync(K.authUserId, authUserId);
+    else Storage.removeItemSync(K.authUserId);
     set({ authUserId });
   },
   setIdentity: (displayName, whatsapp) => {
@@ -76,6 +91,25 @@ export const useSession = create<SessionState>((set) => ({
     if (whatsapp) Storage.setItemSync(K.whatsapp, whatsapp);
     else Storage.removeItemSync(K.whatsapp);
     set({ displayName, whatsapp });
+  },
+  setAccount: ({ firstName, lastName, email, dniLast4, whatsapp }) => {
+    const displayName = `${firstName} ${lastName}`.trim();
+    Storage.setItemSync(K.firstName, firstName);
+    Storage.setItemSync(K.lastName, lastName);
+    Storage.setItemSync(K.email, email);
+    Storage.setItemSync(K.displayName, displayName);
+    if (dniLast4) Storage.setItemSync(K.dniLast4, dniLast4);
+    else Storage.removeItemSync(K.dniLast4);
+    if (whatsapp) Storage.setItemSync(K.whatsapp, whatsapp);
+    else Storage.removeItemSync(K.whatsapp);
+    set({ firstName, lastName, email, dniLast4, displayName, whatsapp });
+  },
+  clearAuth: () => {
+    Storage.removeItemSync(K.authUserId);
+    Storage.removeItemSync(K.displayName);
+    Storage.removeItemSync(K.email);
+    Storage.removeItemSync(K.dniLast4);
+    set({ authUserId: null, displayName: null, email: null, dniLast4: null });
   },
   completeOnboarding: () => {
     writeBool(K.onboardingDone, true);

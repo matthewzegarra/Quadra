@@ -49,6 +49,7 @@ export function ReportCard({ r }: { r: ReportWithMeta }) {
       <AppText color={colors.textSecondary}>{meta}</AppText>
       <View style={styles.row}>
         <OriginPill r={r} />
+        {r.review_status === 'pendiente' ? <Badge label="Pendiente de confirmación" color={colors.accentInk} bg={colors.accent} icon="time-outline" /> : null}
         {r.status !== 'abierto' ? (
           <Badge label={r.status === 'atendiendo' ? 'Un vecino va en camino' : 'Resuelto'} color={colors.ok} bg={colors.primarySoft} icon="checkmark" />
         ) : null}

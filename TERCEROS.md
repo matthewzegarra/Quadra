@@ -57,6 +57,12 @@ Versiones exactas instaladas (ver `package-lock.json`).
 | Reconocimiento de voz de Google (Android) | Términos de Google | Servicio del sistema que usa expo-speech-recognition cuando no hay reconocimiento en el dispositivo |
 | Vercel | Servicio en la nube, plan gratuito | Hosting de la landing (pendiente F5) |
 
+## Landing (archivo vendido, no es dependencia npm)
+
+| Componente | Versión | Licencia | Uso en Quadra |
+|---|---|---|---|
+| qrcode-generator (Kazuhiko Arase), copiado en `landing/qrcode.js` | 1.4.4 | MIT | Código QR de la landing, sin cargarlo desde un CDN |
+
 ## Plantilla de inicio
 
 El proyecto se generó con `create-expo-app` (plantilla `blank-typescript`, © 650 Industries, MIT). Logo e íconos de Quadra: diseño propio del equipo PEAK (`assets/brand/`).

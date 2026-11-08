@@ -9,12 +9,13 @@ import { CoachMarks } from '@/components/CoachMarks';
 import { ListingCard } from '@/components/ListingCard';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { SOSButton } from '@/components/SOSButton';
-import { Chip, EmptyState } from '@/components/ui';
+import { Chip, EmptyState, IconTile } from '@/components/ui';
 import { MicButton } from '@/components/VoiceButton';
 import { useNearbyListings } from '@/data/repositories/listings';
 import { findItem, LISTING_CATEGORIES } from '@/features/catalog';
-import { useSession } from '@/features/session/store';
+import { useCurrentUserId, useSession } from '@/features/session/store';
 import { useLocationStore } from '@/lib/location';
+import { sharePoint } from '@/lib/privacy';
 import { colors, EASY_MODE_SCALE, fonts, fontSize, MIN_TOUCH, radius, spacing } from '@/theme/tokens';
 
 // Módulo 1 · Servicios de Proximidad. Diseño: design/pantallas/Main.dc.html
@@ -22,6 +23,7 @@ export default function CercaDeTiScreen() {
   const coords = useLocationStore((s) => s.coords);
   const source = useLocationStore((s) => s.source);
   const easy = useSession((s) => s.easyMode);
+  const me = useCurrentUserId();
   const [walkOnly, setWalkOnly] = useState(true);
   const [category, setCategory] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -33,9 +35,20 @@ export default function CercaDeTiScreen() {
     () =>
       items.slice(0, 40).map((l) => {
         const c = findItem(LISTING_CATEGORIES, l.category);
-        return { id: l.id, lat: l.lat, lng: l.lng, color: c.color, icon: c.icon, label: l.title, onPress: () => router.push(`/listing/${l.id}`) };
+        const mine = l.owner_id === me;
+        const at = sharePoint(l, mine);
+        return {
+          id: l.id,
+          lat: at.lat,
+          lng: at.lng,
+          color: c.color,
+          icon: c.icon,
+          label: l.title,
+          shape: mine ? ('circle' as const) : ('zone' as const),
+          onPress: () => router.push(`/listing/${l.id}`),
+        };
       }),
-    [items],
+    [items, me],
   );
 
   const header = (
@@ -76,10 +89,31 @@ export default function CercaDeTiScreen() {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
         <Chip label="A pie · 1.5 km" icon="walk" selected={walkOnly} onPress={() => setWalkOnly(!walkOnly)} />
-        {LISTING_CATEGORIES.map((c) => (
-          <Chip key={c.key} label={c.label} selected={category === c.key} onPress={() => setCategory(category === c.key ? null : c.key)} />
-        ))}
+        <Chip label="Todo" selected={category === null} onPress={() => setCategory(null)} />
       </ScrollView>
+
+      <View style={styles.cats}>
+        {LISTING_CATEGORIES.map((c) => {
+          const on = category === c.key;
+          return (
+            <Pressable
+              key={c.key}
+              accessibilityRole="button"
+              accessibilityState={{ selected: on }}
+              accessibilityLabel={c.label}
+              onPress={() => setCategory(on ? null : c.key)}
+              style={[styles.cat, on && { borderColor: colors.primary, backgroundColor: c.bg }]}
+            >
+              <IconTile icon={c.icon} color={c.color} bg={on ? colors.surface : c.bg} size={64} />
+              <AppText bold variant="small" style={{ textAlign: 'center' }} numberOfLines={2}>
+                {c.label}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Reminders />
 
       {mode === 'mapa' ? (
         <View>
@@ -117,6 +151,37 @@ export default function CercaDeTiScreen() {
       />
       <CoachMarks />
     </SafeAreaView>
+  );
+}
+
+const REMINDERS = [
+  { title: 'Saluda a un vecino', text: 'Una visita corta evita una emergencia.', icon: 'heart-outline' as const },
+  { title: 'Ten agua a mano', text: 'En un sismo, el agua es lo primero.', icon: 'water-outline' as const },
+  { title: 'Da tu Visto Bueno', text: 'Si usaste un servicio, recomiéndalo.', icon: 'checkmark' as const },
+];
+
+function Reminders() {
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Ver novedades y Quadri Points" onPress={() => router.push('/novedades')} style={styles.news}>
+        <Ionicons name="paw" size={22} color={colors.primary} />
+        <AppText bold style={{ flex: 1 }}>
+          Novedades y Quadri Points
+        </AppText>
+        <Ionicons name="chevron-forward" size={22} color={colors.primary} />
+      </Pressable>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+        {REMINDERS.map((r) => (
+          <View key={r.title} style={styles.reminder}>
+            <Ionicons name={r.icon} size={28} color={colors.primary} />
+            <AppText bold>{r.title}</AppText>
+            <AppText variant="small" color={colors.textSecondary}>
+              {r.text}
+            </AppText>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -159,6 +224,36 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, minHeight: MIN_TOUCH, fontFamily: fonts.regular, color: colors.ink },
   chips: { gap: spacing.sm, paddingRight: spacing.xl },
+  cats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  cat: {
+    width: '31%',
+    minHeight: 118,
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.sm,
+  },
+  news: {
+    minHeight: MIN_TOUCH,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.accent,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
+  },
+  reminder: {
+    width: 220,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    gap: spacing.xs,
+  },
   toggle: {
     flexDirection: 'row',
     alignSelf: 'flex-end',

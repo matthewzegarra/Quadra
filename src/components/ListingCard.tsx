@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
-import { Card, IconTile } from '@/components/ui';
+import { Badge, Card, IconTile } from '@/components/ui';
 import type { ListingWithMeta } from '@/data/repositories/listings';
 import { findItem, LISTING_CATEGORIES } from '@/features/catalog';
 import { blocks, formatMeters, walkingMinutes } from '@/lib/geo';
@@ -41,6 +41,7 @@ export function ListingCard({ item }: { item: ListingWithMeta }) {
             {meta}
           </AppText>
           <VistoBuenoBadge count={item.visto_bueno_count} />
+          {item.review_status === 'pendiente' ? <Badge label="Pendiente de revisión" color={colors.accentInk} bg={colors.accentSoft} icon="time-outline" /> : null}
         </View>
       </View>
     </Card>

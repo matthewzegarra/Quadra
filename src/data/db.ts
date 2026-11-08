@@ -179,6 +179,49 @@ const MIGRATIONS: string[] = [
   );
   ALTER TABLE emergency_reports ADD COLUMN mesh_path TEXT;
   `,
+  // v3: revisión de publicaciones, zona pública y DNI (solo últimos 4, en este celular).
+  `
+  ALTER TABLE profiles ADD COLUMN first_name TEXT;
+  ALTER TABLE profiles ADD COLUMN last_name TEXT;
+  ALTER TABLE profiles ADD COLUMN demo_mode INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE profiles ADD COLUMN public_home_lat REAL;
+  ALTER TABLE profiles ADD COLUMN public_home_lng REAL;
+
+  ALTER TABLE listings ADD COLUMN review_status TEXT NOT NULL DEFAULT 'aprobado';
+  ALTER TABLE listings ADD COLUMN review_note TEXT;
+  ALTER TABLE listings ADD COLUMN public_lat REAL;
+  ALTER TABLE listings ADD COLUMN public_lng REAL;
+
+  ALTER TABLE favors ADD COLUMN review_status TEXT NOT NULL DEFAULT 'aprobado';
+  ALTER TABLE favors ADD COLUMN review_note TEXT;
+  ALTER TABLE favors ADD COLUMN public_lat REAL;
+  ALTER TABLE favors ADD COLUMN public_lng REAL;
+
+  ALTER TABLE emergency_reports ADD COLUMN review_status TEXT NOT NULL DEFAULT 'aprobado';
+  ALTER TABLE emergency_reports ADD COLUMN review_note TEXT;
+  ALTER TABLE emergency_reports ADD COLUMN public_lat REAL;
+  ALTER TABLE emergency_reports ADD COLUMN public_lng REAL;
+
+  ALTER TABLE favor_responses ADD COLUMN public_lat REAL;
+  ALTER TABLE favor_responses ADD COLUMN public_lng REAL;
+
+  ALTER TABLE ayni_ledger ADD COLUMN updated_at TEXT;
+
+  CREATE TABLE IF NOT EXISTS moderation_log (
+    id TEXT PRIMARY KEY NOT NULL,
+    entity TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    decision TEXT NOT NULL,
+    moderator_id TEXT,
+    reason TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS profile_private (
+    user_id TEXT PRIMARY KEY NOT NULL,
+    dni_last4 TEXT
+  );
+  `,
 ];
 
 /** Columnas que existen solo en el celular (no se envían a Supabase). */

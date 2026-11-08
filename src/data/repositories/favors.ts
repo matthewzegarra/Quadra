@@ -4,6 +4,7 @@ import type { Favor, FavorResponse, FavorType, MobilityRole, Profile } from '@/d
 import { useLocalQuery } from '@/data/useLocalQuery';
 import { currentUserId, currentUserName } from '@/features/session/store';
 import { distanceMeters, type LatLng } from '@/lib/geo';
+import { located, reviewForNewPost, sharePoint } from '@/lib/privacy';
 import { newId } from '@/lib/ids';
 import { DEMO_ZONE_ID } from '@/lib/zone';
 
@@ -21,11 +22,13 @@ export function useFavors(opts: { from: LatLng; type: FavorType | null }) {
            (SELECT COUNT(*) FROM favor_responses r WHERE r.favor_id = f.id AND r.status <> 'retirado') AS offers,
            (SELECT r2.status FROM favor_responses r2 WHERE r2.favor_id = f.id AND r2.responder_id = ?) AS my_response_status
          FROM favors f LEFT JOIN profiles p ON p.id = f.author_id
-         WHERE f.status <> 'resuelto' ${type ? 'AND f.type = ?' : ''}
+         WHERE f.status <> 'resuelto'
+           AND (coalesce(f.review_status, 'aprobado') = 'aprobado' OR (f.author_id = ? AND f.review_status = 'pendiente'))
+           ${type ? 'AND f.type = ?' : ''}
          ORDER BY f.created_at DESC`,
-        type ? [currentUserId(), type] : [currentUserId()],
+        type ? [currentUserId(), currentUserId(), type] : [currentUserId(), currentUserId()],
       );
-      return rows.map((r) => ({ ...r, distance_m: distanceMeters(from, r) }));
+      return rows.map((r) => ({ ...r, distance_m: distanceMeters(from, sharePoint(r, r.author_id === currentUserId())) }));
     },
     [from.lat, from.lng, type],
   );
@@ -77,9 +80,9 @@ export async function createFavor(input: NewFavor): Promise<string> {
     category: input.category,
     title: input.title.trim(),
     description: input.description?.trim() || null,
-    lat: input.location.lat,
-    lng: input.location.lng,
+    ...located(input.location),
     status: 'abierto',
+    review_status: reviewForNewPost(),
     accepted_response_id: null,
     mobility_destination: input.mobility?.destination.trim() ?? null,
     mobility_days: input.mobility ? JSON.stringify(input.mobility.days) : null,
@@ -105,8 +108,7 @@ export async function offerHelp(
     responder_id: currentUserId(),
     responder_name: currentUserName(),
     message: input.message.trim() || null,
-    lat: input.location.lat,
-    lng: input.location.lng,
+    ...located(input.location),
     location_source: input.source,
     location_label: input.label,
     distance_m: distanceMeters(input.location, favor),

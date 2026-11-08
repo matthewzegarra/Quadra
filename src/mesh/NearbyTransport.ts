@@ -17,7 +17,7 @@ import {
   Strategy,
 } from 'expo-nearby-connections';
 import { PermissionsAndroid, Platform } from 'react-native';
-import type { MeshMessage, MeshTransport, Peer } from '@/mesh/MeshTransport';
+import { isValidMeshMessage, type MeshMessage, type MeshTransport, type Peer } from '@/mesh/MeshTransport';
 
 // Transporte mesh con Google Nearby Connections (Bluetooth + Wi-Fi Direct, sin internet ni hardware extra).
 // Cada celular anuncia y descubre a la vez (P2P_CLUSTER: varios a varios) y se conecta solo,
@@ -95,8 +95,9 @@ export class NearbyTransport implements MeshTransport {
       }),
       onTextReceived(({ peerId, text }) => {
         try {
-          const msg = JSON.parse(text) as MeshMessage;
-          if (msg?.v !== 1 || !msg.id) return;
+          if (!text || text.length > 2048) return;
+          const msg = JSON.parse(text) as unknown;
+          if (!isValidMeshMessage(msg)) return;
           this.msgCbs.forEach((cb) => cb(msg, peerId));
         } catch {
           // payload ajeno o corrupto: se ignora

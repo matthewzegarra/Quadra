@@ -13,7 +13,7 @@ import { acceptOffer, resolveFavor, useFavor, useMobilityMatches, withdrawOffer,
 import type { Favor } from '@/data/types';
 import { FAVOR_TYPES, firstName, timeAgo } from '@/features/catalog';
 import { useCurrentUserId } from '@/features/session/store';
-import { openWhatsApp } from '@/lib/contact';
+import { openWhatsApp, revealAcceptedOffer } from '@/lib/contact';
 import { distanceMeters, formatMeters, roundLocation, walkingMinutes } from '@/lib/geo';
 import { useLocationStore } from '@/lib/location';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -112,7 +112,7 @@ export default function FavorDetailScreen() {
 function MyOffers({ favor, offers }: { favor: Favor; offers: OfferWithMeta[] }) {
   const accepted = offers.find((o) => o.id === favor.accepted_response_id) ?? offers.find((o) => o.status === 'aceptado' || o.status === 'completado');
   // Privacidad: antes de aceptar, ubicación redondeada a ~50 m
-  const shown = offers.map((o) => (o.id === accepted?.id ? o : { ...o, ...roundLocation(o) }));
+  const shown = offers.map((o) => (o.id === accepted?.id ? o : { ...o, ...roundLocation(o, 250) }));
   const pins: MapPin[] = shown.map((o, i) => ({
     id: o.id,
     lat: o.lat,
@@ -130,7 +130,8 @@ function MyOffers({ favor, offers }: { favor: Favor; offers: OfferWithMeta[] }) 
         onPress: async () => {
           await acceptOffer(favor, o, offers);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-          void openWhatsApp(o.phone, `¡Hola ${firstName(o.responder_name)}! Te elegí en Quadra para "${favor.title}". ¿Coordinamos?`);
+          const revealed = await revealAcceptedOffer(o.id);
+          void openWhatsApp(o.phone ?? revealed?.phone, `¡Hola ${firstName(o.responder_name)}! Te elegí en Quadra para "${favor.title}". ¿Coordinamos?`);
         },
       },
     ]);
@@ -170,7 +171,14 @@ function MyOffers({ favor, offers }: { favor: Favor; offers: OfferWithMeta[] }) 
             {accepted.location_label ? ` · ${accepted.location_label}` : ''}
           </AppText>
           {accepted.message ? <AppText>“{accepted.message}”</AppText> : null}
-          <BigButton label="Escribirle por WhatsApp" icon="logo-whatsapp" onPress={() => openWhatsApp(accepted.phone, `¡Hola ${firstName(accepted.responder_name)}! Te escribo por "${favor.title}" en Quadra.`)} />
+          <BigButton
+            label="Escribirle por WhatsApp"
+            icon="logo-whatsapp"
+            onPress={async () => {
+              const revealed = await revealAcceptedOffer(accepted.id);
+              await openWhatsApp(accepted.phone ?? revealed?.phone, `¡Hola ${firstName(accepted.responder_name)}! Te escribo por "${favor.title}" en Quadra.`);
+            }}
+          />
           {favor.status !== 'resuelto' ? (
             <BigButton label="Ya me ayudaron" icon="checkmark-done" tone="ok" onPress={resolve} />
           ) : (

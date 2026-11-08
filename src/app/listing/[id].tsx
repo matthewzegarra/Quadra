@@ -12,8 +12,9 @@ import { MicButton } from '@/components/VoiceButton';
 import { checkVistoBueno, giveVistoBueno, useListing } from '@/data/repositories/listings';
 import { findItem, firstName, LISTING_CATEGORIES } from '@/features/catalog';
 import { useCurrentUserId } from '@/features/session/store';
-import { openWhatsApp } from '@/lib/contact';
+import { openWhatsApp, revealListingPhone } from '@/lib/contact';
 import { blocks, distanceMeters, formatMeters, walkingMinutes } from '@/lib/geo';
+import { sharePoint } from '@/lib/privacy';
 import { useLocationStore } from '@/lib/location';
 import { speak } from '@/lib/tts';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -49,11 +50,10 @@ export default function ListingDetailScreen() {
       : `${listing.visto_bueno_count} ${listing.visto_bueno_count === 1 ? 'vecino' : 'vecinos'} de tu zona le dieron visto bueno`;
   const quote = voters.find((v) => v.comment);
 
-  const contact = () =>
-    openWhatsApp(
-      listing.whatsapp ?? owner?.phone_whatsapp,
-      `¡Hola ${firstName(owner?.display_name)}! Te escribo desde Quadra por "${listing.title}". ¿Está disponible?`,
-    );
+  const contact = async () => {
+    const phone = await revealListingPhone(listing.id, listing.whatsapp ?? owner?.phone_whatsapp);
+    await openWhatsApp(phone, `¡Hola ${firstName(owner?.display_name)}! Te escribo desde Quadra por "${listing.title}". ¿Está disponible?`);
+  };
 
   const startVote = async () => {
     const check = await checkVistoBueno(listing);
@@ -147,7 +147,13 @@ export default function ListingDetailScreen() {
           </AppText>
         </View>
 
-        <QuadraMap center={listing} user={coords} pins={[{ id: listing.id, lat: listing.lat, lng: listing.lng, color: cat.color, icon: cat.icon }]} zoom={15.5} style={{ height: 180 }} />
+        <QuadraMap
+          center={sharePoint(listing, isMine)}
+          user={coords}
+          pins={[{ id: listing.id, ...sharePoint(listing, isMine), color: cat.color, icon: cat.icon, shape: isMine ? 'circle' : 'zone' }]}
+          zoom={15.5}
+          style={{ height: 180 }}
+        />
       </ScrollView>
 
       <View style={styles.footer}>

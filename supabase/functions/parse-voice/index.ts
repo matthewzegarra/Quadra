@@ -122,6 +122,16 @@ async function parseWithLLM(text: string): Promise<ParsedPost | null> {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  const auth = req.headers.get('Authorization') ?? '';
+  if (!auth.startsWith('Bearer ') || auth.length < 20) {
+    return new Response(JSON.stringify({ error: 'sin sesión' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+  const userRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/user`, {
+    headers: { Authorization: auth, apikey: Deno.env.get('SUPABASE_ANON_KEY') ?? '' },
+  });
+  if (!userRes.ok) {
+    return new Response(JSON.stringify({ error: 'sesión inválida' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
   try {
     const { text } = await req.json();
     if (typeof text !== 'string' || !text.trim() || text.length > 600) {

@@ -11,7 +11,7 @@ import { colors, MIN_TOUCH, radius, spacing } from '@/theme/tokens';
 
 // Tutorial obligatorio (prompt.md §6.1). Diseño: design/pantallas/Tutorial.dc.html
 
-const QUADRI = require('../../../assets/brand/quadri.png');
+const QUADRI = require('../../../assets/brand/quadri-mascota.png');
 
 type Step = {
   title: string;

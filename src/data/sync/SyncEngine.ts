@@ -2,7 +2,9 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getDb, LOCAL_ONLY_COLUMNS } from '@/data/db';
 import { putLocal, refreshPendingCount } from '@/data/repositories/base';
 import { bumpTables, useSyncState } from '@/data/store';
+import { currentUserId } from '@/features/session/store';
 import { useConnectivity } from '@/lib/connectivity';
+import { PUBLIC_GRID_M, roundLocation } from '@/lib/geo';
 import { supabase } from '@/lib/supabase';
 
 // Motor de sincronización offline-first (prompt.md §4):
@@ -12,7 +14,7 @@ import { supabase } from '@/lib/supabase';
 
 const BOOL_COLS: Record<string, string[]> = {
   zones: ['emergency_active'],
-  profiles: ['is_zone_admin', 'is_vulnerable', 'easy_mode'],
+  profiles: ['is_zone_admin', 'is_vulnerable', 'easy_mode', 'demo_mode'],
   listings: ['available_in_emergency', 'is_active'],
 };
 const ARRAY_COLS: Record<string, string[]> = { favors: ['mobility_days'] };
@@ -31,6 +33,7 @@ const PULL_TABLES = [
   'favors',
   'favor_responses',
   'emergency_reports',
+  'ayni_ledger',
 ] as const;
 
 type Row = Record<string, unknown>;
@@ -82,23 +85,72 @@ export function onIncomingRow(cb: IncomingListener): () => void {
   return () => incomingListeners.delete(cb);
 }
 
-async function storeIncoming(table: string, serverRow: Row) {
-  const row = await fromServer(table, serverRow);
+const near = (a: unknown, b: unknown) => typeof a === 'number' && typeof b === 'number' && Math.abs(a - b) < 1e-6;
+
+/**
+ * El servidor guarda la zona (~250 m) y no el teléfono. Si este celular ya tenía
+ * el punto exacto (es mío, o es un dato demo), no lo pisamos con la zona.
+ */
+async function mergePrivate(table: string, incoming: Row): Promise<{ row: Row; isNew: boolean }> {
   const db = await getDb();
-  const existing = await db.getFirstAsync<{ id: string }>(`SELECT id FROM ${table} WHERE id = ?`, [
-    row.id as string,
-  ]);
-  if (table === 'emergency_reports' && existing) {
-    // Nunca pisamos origen/saltos locales del mesh: solo actualizamos status.
-    await db.runAsync('UPDATE emergency_reports SET status = ?, updated_at = ? WHERE id = ?', [
-      row.status as string,
-      row.updated_at as string,
-      row.id as string,
-    ]);
+  const existing = await db.getFirstAsync<Row>(`SELECT * FROM ${table} WHERE id = ?`, [incoming.id as string]);
+  const row: Row = { ...(existing ?? {}), ...incoming };
+  const me = currentUserId();
+
+  if (table === 'profiles') {
+    const mine = row.id === me;
+    if (mine && existing) {
+      const snapped = incoming.public_home_lat != null && near(incoming.home_lat, incoming.public_home_lat);
+      if (incoming.home_lat == null || snapped) {
+        row.home_lat = existing.home_lat;
+        row.home_lng = existing.home_lng;
+      }
+      if (!incoming.phone_whatsapp && existing.phone_whatsapp) row.phone_whatsapp = existing.phone_whatsapp;
+    } else if (!mine) {
+      row.phone_whatsapp = null;
+      if (incoming.public_home_lat != null) {
+        row.home_lat = incoming.public_home_lat;
+        row.home_lng = incoming.public_home_lng;
+      } else if (row.home_lat != null && row.home_lng != null && !existing) {
+        const pub = roundLocation({ lat: Number(row.home_lat), lng: Number(row.home_lng) }, PUBLIC_GRID_M);
+        row.home_lat = pub.lat;
+        row.home_lng = pub.lng;
+      } else if (existing) {
+        row.home_lat = existing.home_lat;
+        row.home_lng = existing.home_lng;
+      }
+    }
+  }
+
+  if (table === 'listings' || table === 'favors' || table === 'emergency_reports' || table === 'favor_responses') {
+    const owner = (row.owner_id ?? row.author_id ?? row.responder_id) as string | null;
+    const mine = owner === me;
+    if (existing && (mine || existing.lat != null)) {
+      const snapped = incoming.public_lat != null && near(incoming.lat, incoming.public_lat);
+      if (incoming.lat == null || snapped || !mine) {
+        row.lat = existing.lat;
+        row.lng = existing.lng;
+      }
+    }
+    if (table === 'listings' && !incoming.whatsapp && existing?.whatsapp) row.whatsapp = existing.whatsapp;
+  }
+  return { row, isNew: !existing };
+}
+
+async function storeIncoming(table: string, serverRow: Row) {
+  const incoming = await fromServer(table, serverRow);
+  const { row, isNew } = await mergePrivate(table, incoming);
+  const db = await getDb();
+  if (table === 'emergency_reports' && !isNew) {
+    // No pisamos el origen ni los saltos del mesh. Sí llegan estado y revisión.
+    await db.runAsync(
+      'UPDATE emergency_reports SET status = ?, review_status = COALESCE(?, review_status), updated_at = ? WHERE id = ?',
+      [row.status as string, (row.review_status as string) ?? null, row.updated_at as string, row.id as string],
+    );
   } else {
     await putLocal(table, row);
   }
-  incomingListeners.forEach((cb) => cb(table, row, !existing));
+  incomingListeners.forEach((cb) => cb(table, row, isNew));
 }
 
 function isNetworkError(err: { code?: string; message?: string } | null): boolean {

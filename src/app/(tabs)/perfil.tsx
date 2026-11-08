@@ -27,7 +27,7 @@ import {
   requestNotificationPermission,
   useNotifications,
 } from '@/lib/notify';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { isSupabaseConfigured, signOutAccount } from '@/lib/supabase';
 import { useMesh } from '@/mesh/MeshRouter';
 import { colors, MIN_TOUCH, radius, spacing } from '@/theme/tokens';
 
@@ -67,7 +67,10 @@ export default function PerfilScreen() {
             <AppText variant="title" bold accessibilityRole="header">
               {s.displayName ?? 'Vecino'}
             </AppText>
-            <AppText color={colors.textSecondary}>Lince · Sector 3{isAdmin ? ' · Junta vecinal' : ''}</AppText>
+            <AppText color={colors.textSecondary}>
+              Lince · Sector 3{isAdmin ? ' · Junta vecinal' : ''}
+              {s.dniLast4 ? ` · DNI ****${s.dniLast4}` : ''}
+            </AppText>
           </View>
           <View style={styles.aynis}>
             <AppText bold variant="title" color={colors.accentInk}>
@@ -81,7 +84,8 @@ export default function PerfilScreen() {
         <AppText variant="small" color={colors.textSecondary}>
           Los Quadri Points reconocen tu ayuda: ayudar suma y pedir nunca resta. Hoy te ayudo, mañana me ayudas.
         </AppText>
-        <BigButton label="Editar mi nombre y WhatsApp" icon="create-outline" tone="outline" onPress={() => router.push('/bienvenida')} />
+        <BigButton label="Novedades" icon="paw-outline" tone="outline" onPress={() => router.push('/novedades')} />
+        <BigButton label="Editar mi nombre y WhatsApp" icon="create-outline" tone="outline" onPress={() => router.push({ pathname: '/bienvenida', params: { editar: '1' } })} />
 
         <OfflineBanner />
 
@@ -105,8 +109,35 @@ export default function PerfilScreen() {
           />
           <NotificationsSetting />
           <Toggle label="Red vecinal (Bluetooth)" hint="Se activa sola en emergencia o sin internet." value={s.meshEnabled} onChange={s.setMeshEnabled} />
-          <Toggle label="Modo demo" hint="Contador de toques, datos de ejemplo y diagnóstico." value={s.demoMode} onChange={s.setDemoMode} />
+          <Toggle
+            label="Modo demo"
+            hint="Publica sin esperar a la junta. Sirve para ensayar. Apagado, todo pasa por revisión."
+            value={s.demoMode}
+            onChange={(v) => {
+              s.setDemoMode(v);
+              void updateMyProfile({ demo_mode: v ? 1 : 0 });
+            }}
+          />
           <BigButton label="Ver tutorial" icon="school-outline" tone="outline" onPress={() => { s.resetOnboarding(); router.replace('/tutorial'); }} />
+          <BigButton
+            label="Cerrar sesión"
+            icon="log-out-outline"
+            tone="outline"
+            onPress={() => {
+              Alert.alert('¿Cerrar sesión?', 'Tus publicaciones siguen en este celular.', [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                  text: 'Cerrar sesión',
+                  style: 'destructive',
+                  onPress: async () => {
+                    await signOutAccount();
+                    s.clearAuth();
+                    router.replace('/bienvenida');
+                  },
+                },
+              ]);
+            }}
+          />
         </Section>
 
         <Section title="Junta vecinal">
@@ -119,6 +150,7 @@ export default function PerfilScreen() {
                 ))}
               </View>
               <BigButton label="Activar Modo Emergencia" icon="warning" tone="danger" onPress={activate} />
+              <BigButton label="Revisar publicaciones" icon="shield-checkmark-outline" tone="outline" onPress={() => router.push('/moderar')} />
             </Card>
           ) : (
             <Card>
@@ -148,7 +180,7 @@ export default function PerfilScreen() {
           <Section title="Diagnóstico (demo)">
             <Card>
               <Diag label="Conexión" value={isOnline ? 'en línea' : 'sin conexión'} />
-              <Diag label="Supabase" value={isSupabaseConfigured ? (s.authUserId ? 'sesión anónima activa' : 'sin sesión aún') : 'no configurado'} />
+              <Diag label="Supabase" value={isSupabaseConfigured ? (s.authUserId ? (s.email ? 'cuenta con correo' : 'sesión activa') : 'sin cuenta') : 'no configurado'} />
               <Diag label="Por enviar" value={`${sync.pending}`} />
               <Diag label="Última sincronización" value={sync.lastSyncAt ? new Date(sync.lastSyncAt).toLocaleTimeString() : '—'} />
               {sync.lastError ? <Diag label="Último error" value={sync.lastError} /> : null}

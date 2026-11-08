@@ -7,6 +7,7 @@ import { useLocalQuery } from '@/data/useLocalQuery';
 import { REPORT_KINDS } from '@/features/catalog';
 import { currentUserId, currentUserName, useSession } from '@/features/session/store';
 import { distanceMeters, type LatLng } from '@/lib/geo';
+import { located, reviewForNewPost, shareHome, sharePoint } from '@/lib/privacy';
 import { newId } from '@/lib/ids';
 import { markNotified, zoneEmergencyKey } from '@/lib/notify';
 import { currentCoords } from '@/lib/location';
@@ -40,12 +41,15 @@ export function useReports(from: LatLng, kinds?: ReportKind[]) {
     ['emergency_reports'],
     async (db) => {
       const rows = await db.getAllAsync<EmergencyReport & { mesh_path: string | null }>(
-        `SELECT * FROM emergency_reports ${kinds ? `WHERE kind IN (${kinds.map(() => '?').join(',')})` : ''}`,
-        kinds ?? [],
+        `SELECT * FROM emergency_reports
+         WHERE coalesce(review_status, 'aprobado') <> 'rechazado'
+           AND (coalesce(review_status, 'aprobado') = 'aprobado' OR author_id = ? OR origin = 'mesh')
+           ${kinds ? `AND kind IN (${kinds.map(() => '?').join(',')})` : ''}`,
+        [currentUserId(), ...(kinds ?? [])],
       );
       const statusRank: Record<ReportStatus, number> = { abierto: 0, atendiendo: 1, resuelto: 2 };
       return rows
-        .map((r) => ({ ...r, distance_m: distanceMeters(from, r) }))
+        .map((r) => ({ ...r, distance_m: distanceMeters(from, sharePoint(r, r.author_id === currentUserId())) }))
         .sort((a, b) => statusRank[a.status] - statusRank[b.status] || a.priority - b.priority || a.distance_m - b.distance_m);
     },
     [from.lat, from.lng, kinds?.join(',')],
@@ -66,7 +70,12 @@ export function useVulnerableNeighbors(from: LatLng) {
        AND id NOT IN (SELECT author_id FROM emergency_reports WHERE kind IN ('estoy_bien','vulnerable') AND author_id IS NOT NULL)`,
       [currentUserId()],
     );
-    return rows.map((p) => ({ ...p, distance_m: distanceMeters(from, { lat: p.home_lat!, lng: p.home_lng! }) })).sort((a, b) => a.distance_m - b.distance_m);
+    return rows
+      .map((p) => {
+        const at = shareHome(p, false) ?? { lat: p.home_lat!, lng: p.home_lng! };
+        return { ...p, home_lat: at.lat, home_lng: at.lng, distance_m: distanceMeters(from, at) };
+      })
+      .sort((a, b) => a.distance_m - b.distance_m);
   }, [from.lat, from.lng]);
 }
 
@@ -82,8 +91,8 @@ export async function createReport(input: { kind: ReportKind; need?: string | nu
     description: input.description?.trim() || null,
     people_count: input.people_count ?? 1,
     priority: REPORT_KINDS[input.kind].priority,
-    lat: at.lat,
-    lng: at.lng,
+    ...located(at),
+    review_status: input.kind === 'estoy_bien' ? 'aprobado' : reviewForNewPost(),
     status: 'abierto',
     origin: 'online',
     mesh_hops: 0,

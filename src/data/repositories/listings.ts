@@ -6,6 +6,7 @@ import type { Listing, ListingKind, Profile, VistoBueno } from '@/data/types';
 import { useLocalQuery } from '@/data/useLocalQuery';
 import { currentUserId } from '@/features/session/store';
 import { distanceMeters, WALKING_RADIUS_M, type LatLng } from '@/lib/geo';
+import { located, reviewForNewPost, sharePoint } from '@/lib/privacy';
 import { newId } from '@/lib/ids';
 import { DEMO_ZONE_ID } from '@/lib/zone';
 
@@ -22,12 +23,14 @@ export function useNearbyListings(opts: { from: LatLng; category: string | null;
       const rows = await db.getAllAsync<Listing & { owner_name: string | null }>(
         `SELECT l.*, p.display_name AS owner_name FROM listings l
          LEFT JOIN profiles p ON p.id = l.owner_id
-         WHERE l.is_active = 1 ${category ? 'AND l.category = ?' : ''} ${emergencyOnly ? 'AND l.available_in_emergency = 1' : ''}`,
-        category ? [category] : [],
+         WHERE l.is_active = 1
+           AND (coalesce(l.review_status, 'aprobado') = 'aprobado' OR (l.owner_id = ? AND l.review_status = 'pendiente'))
+           ${category ? 'AND l.category = ?' : ''} ${emergencyOnly ? 'AND l.available_in_emergency = 1' : ''}`,
+        category ? [currentUserId(), category] : [currentUserId()],
       );
       const q = norm(search.trim());
       return rows
-        .map((r) => ({ ...r, distance_m: distanceMeters(from, r) }))
+        .map((r) => ({ ...r, distance_m: distanceMeters(from, sharePoint(r, r.owner_id === currentUserId())) }))
         .filter((r) => !walkOnly || r.distance_m <= WALKING_RADIUS_M)
         .filter((r) => !q || norm(`${r.title} ${r.description ?? ''} ${r.category} ${r.owner_name ?? ''}`).includes(q))
         .sort((a, b) => a.distance_m - b.distance_m);
@@ -92,8 +95,8 @@ export async function createListing(input: NewListing): Promise<string> {
     description: input.description?.trim() || null,
     price_hint: input.price_hint?.trim() || null,
     schedule: input.schedule?.trim() || null,
-    lat: input.location.lat,
-    lng: input.location.lng,
+    ...located(input.location),
+    review_status: reviewForNewPost(),
     whatsapp: input.whatsapp ?? null,
     available_in_emergency: input.available_in_emergency ? 1 : 0,
     emergency_capability: input.emergency_capability ?? null,

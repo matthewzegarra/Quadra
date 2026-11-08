@@ -8,6 +8,8 @@ export const METERS_PER_BLOCK = 100;
 export const WALK_METERS_PER_MIN = 80;
 /** Radio "A pie" y regla del Visto Bueno Vecinal. */
 export const WALKING_RADIUS_M = 1500;
+/** Cuadrícula pública del mapa: la zona que ven los demás, no la puerta. */
+export const PUBLIC_GRID_M = 250;
 
 /** Centro del barrio demo: Lince, Lima. */
 export const DEMO_CENTER: LatLng = { lat: -12.0846, lng: -77.0353 };

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { getDb } from '@/data/db';
 import { refreshPendingCount } from '@/data/repositories/base';
 import { useEmergencyMode } from '@/data/repositories/emergency';
-import { ensureMyProfile, remapIdentity } from '@/data/repositories/profiles';
+import { ensureMyProfile, getMyProfile, remapIdentity, updateMyProfile } from '@/data/repositories/profiles';
 import { onIncomingRow, setSyncInterval, startSyncEngine, syncNow } from '@/data/sync/SyncEngine';
 import type { Favor } from '@/data/types';
 import { EMERGENCY_TYPES, firstName } from '@/features/catalog';
@@ -11,26 +11,34 @@ import { currentUserId, useSession } from '@/features/session/store';
 import { startConnectivityListener, useConnectivity } from '@/lib/connectivity';
 import { refreshLocation } from '@/lib/location';
 import { initNotifications, notify, zoneEmergencyKey } from '@/lib/notify';
-import { ensureAnonSession } from '@/lib/supabase';
+import { restoreSession } from '@/lib/supabase';
 import { startMesh, stopMesh } from '@/mesh/MeshRouter';
 import { loadSeedIfEmpty } from '@/seed/loadSeed';
 
 let authInFlight: Promise<void> | null = null;
 
-/** Sesión anónima → remapea lo creado offline → perfil → motor de sincronización. */
+/** El Modo demo (activo de fábrica) tiene que estar en el servidor para publicar sin cola. */
+async function syncDemoFlag() {
+  if (!useSession.getState().demoMode) return;
+  const me = await getMyProfile();
+  if (me && me.demo_mode !== 1) await updateMyProfile({ demo_mode: 1 });
+}
+
+/** Si ya hay cuenta, remapea lo creado offline y sincroniza. No crea una sesión anónima. */
 function connectBackend(): Promise<void> {
   if (authInFlight) return authInFlight;
   authInFlight = (async () => {
     const s = useSession.getState();
-    if (s.authUserId) {
-      startSyncEngine();
-      return;
-    }
-    const authId = await ensureAnonSession();
+    const authId = await restoreSession();
     if (!authId) return;
-    await remapIdentity(s.localUserId, authId);
-    useSession.getState().setAuthUserId(authId);
-    await ensureMyProfile();
+    if (s.authUserId !== authId) {
+      await remapIdentity(s.localUserId, authId);
+      useSession.getState().setAuthUserId(authId);
+    }
+    if (useSession.getState().displayName) {
+      await ensureMyProfile();
+      await syncDemoFlag();
+    }
     startSyncEngine();
   })().finally(() => {
     authInFlight = null;
@@ -43,8 +51,10 @@ export async function bootstrap(): Promise<void> {
   await getDb();
   await loadSeedIfEmpty();
   await refreshPendingCount();
-  void refreshLocation().then(() => {
-    if (useSession.getState().onboardingDone) void ensureMyProfile();
+  void refreshLocation().then(async () => {
+    if (!useSession.getState().onboardingDone) return;
+    await ensureMyProfile();
+    await syncDemoFlag();
   });
   void initNotifications(useSession.getState().onboardingDone);
   void connectBackend();

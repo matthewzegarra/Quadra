@@ -1,38 +1,49 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useMemo } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Alert, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { QuadraMap, type MapPin } from '@/components/QuadraMap';
 import { EmergencyHeader } from '@/components/EmergencyHeader';
 import { distanceText } from '@/components/ListingCard';
 import { ReportCard } from '@/components/ReportCard';
-import { Card, EmptyState } from '@/components/ui';
+import { Card, Chip, EmptyState } from '@/components/ui';
 import { createReport, useReports, useVulnerableNeighbors } from '@/data/repositories/emergency';
 import { NEEDS, findItem } from '@/features/catalog';
+import { useCurrentUserId } from '@/features/session/store';
 import { useLocationStore } from '@/lib/location';
+import { sharePoint } from '@/lib/privacy';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 // Tablero de Ayuda Humanitaria. Diseño: design/pantallas/Emergencia.dc.html
 export default function TableroScreen() {
   const coords = useLocationStore((s) => s.coords);
+  const me = useCurrentUserId();
+  const [level, setLevel] = useState<number | null>(null);
   const { data: reports = [] } = useReports(coords);
+  const visible = level == null ? reports : reports.filter((r) => r.priority === level);
   const { data: vulnerable = [] } = useVulnerableNeighbors(coords);
 
   const pins: MapPin[] = useMemo(() => {
     const out: MapPin[] = [];
-    for (const r of reports) {
+    for (const r of visible) {
       if (r.status === 'resuelto') continue;
-      if (r.kind === 'sos') out.push({ id: r.id, lat: r.lat, lng: r.lng, color: colors.danger, text: 'SOS', pulse: true, onPress: () => router.push({ pathname: '/emergencia/recibido/[id]', params: { id: r.id } }) });
-      else if (r.kind === 'vulnerable') out.push({ id: r.id, lat: r.lat, lng: r.lng, color: colors.vulnerable, shape: 'diamond', icon: 'person' });
+      const mine = r.author_id === me;
+      const at = sharePoint(r, mine);
+      const shape = mine ? undefined : ('zone' as const);
+      const open = () => router.push({ pathname: '/emergencia/recibido/[id]', params: { id: r.id } });
+      if (r.kind === 'sos') out.push({ id: r.id, ...at, color: colors.danger, text: 'SOS', pulse: mine, shape, onPress: open });
+      else if (r.kind === 'vulnerable') out.push({ id: r.id, ...at, color: colors.vulnerable, icon: 'person', shape: shape ?? 'diamond' });
       else if (r.kind === 'recurso_necesito' || r.kind === 'recurso_ofrezco')
-        out.push({ id: r.id, lat: r.lat, lng: r.lng, color: colors.need, shape: 'square', icon: findItem(NEEDS, r.need).icon });
-      else out.push({ id: r.id, lat: r.lat, lng: r.lng, color: colors.ok, icon: 'checkmark' });
+        out.push({ id: r.id, ...at, color: colors.need, icon: findItem(NEEDS, r.need).icon, shape: shape ?? 'square' });
+      else out.push({ id: r.id, ...at, color: colors.ok, icon: 'checkmark', shape });
     }
-    for (const v of vulnerable) out.push({ id: `v-${v.id}`, lat: v.home_lat!, lng: v.home_lng!, color: colors.vulnerable, shape: 'diamond', icon: 'person' });
+    if (level == null || level === 1) {
+      for (const v of vulnerable) out.push({ id: `v-${v.id}`, lat: v.home_lat!, lng: v.home_lng!, color: colors.vulnerable, shape: 'zone', icon: 'person' });
+    }
     return out;
-  }, [reports, vulnerable]);
+  }, [visible, vulnerable, me, level]);
 
   const imOk = () =>
     Alert.alert('¿Avisar que estás bien?', 'Tus vecinos verán que estás bien. Llega por internet o por la red vecinal.', [
@@ -63,6 +74,12 @@ export default function TableroScreen() {
           </AppText>
         </Pressable>
       </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+        <Chip label="Todo" tone="danger" selected={level == null} onPress={() => setLevel(null)} />
+        <Chip label="Alta" tone="danger" selected={level === 1} onPress={() => setLevel(1)} />
+        <Chip label="Media" tone="danger" selected={level === 2} onPress={() => setLevel(2)} />
+        <Chip label="Baja" tone="danger" selected={level === 3} onPress={() => setLevel(3)} />
+      </ScrollView>
       <QuadraMap center={coords} user={coords} pins={pins} zoom={14.8} />
       <View style={styles.legend}>
         <Legend color={colors.danger} label="SOS" />
@@ -85,7 +102,7 @@ export default function TableroScreen() {
     <View style={styles.safe}>
       <EmergencyHeader title="Tablero de Ayuda Humanitaria" />
       <FlatList
-        data={reports}
+        data={visible}
         keyExtractor={(r) => r.id}
         ListHeaderComponent={header}
         contentContainerStyle={styles.content}

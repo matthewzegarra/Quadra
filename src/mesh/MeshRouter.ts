@@ -6,6 +6,7 @@ import type { EmergencyReport, ReportKind, Zone } from '@/data/types';
 import { firstName } from '@/features/catalog';
 import { currentUserId, currentUserName } from '@/features/session/store';
 import { MESH_INITIAL_TTL, MESH_RETENTION_MS, type MeshMessage, type MeshMessageType, type MeshTransport, type Peer } from '@/mesh/MeshTransport';
+import { publicCoords } from '@/lib/privacy';
 import { NearbyTransport } from '@/mesh/NearbyTransport';
 import { notify, zoneEmergencyKey } from '@/lib/notify';
 import { DEMO_ZONE_ID } from '@/lib/zone';
@@ -57,6 +58,11 @@ async function alreadySeen(id: string): Promise<boolean> {
 }
 
 export function reportToMessage(r: EmergencyReport, path: string[] = []): MeshMessage {
+  const snapped = publicCoords(r);
+  const zone =
+    r.public_lat != null && r.public_lng != null
+      ? { lat: r.public_lat, lng: r.public_lng }
+      : { lat: snapped.public_lat, lng: snapped.public_lng };
   return {
     v: 1,
     id: r.id,
@@ -65,8 +71,8 @@ export function reportToMessage(r: EmergencyReport, path: string[] = []): MeshMe
     t: KIND_TO_T[r.kind],
     a: r.author_id ?? '',
     n: r.author_name ?? 'Vecino',
-    la: +r.lat.toFixed(6),
-    lo: +r.lng.toFixed(6),
+    la: +zone.lat.toFixed(5),
+    lo: +zone.lng.toFixed(5),
     nd: r.need ?? undefined,
     m: r.description ? r.description.slice(0, 140) : undefined,
     pc: r.people_count ?? undefined,
@@ -111,6 +117,9 @@ async function handleReport(msg: MeshMessage) {
     priority: PRIORITY[kind],
     lat: msg.la,
     lng: msg.lo,
+    public_lat: msg.la,
+    public_lng: msg.lo,
+    review_status: 'pendiente',
     status: 'abierto',
     origin: 'mesh',
     mesh_hops: msg.h + 1,

@@ -24,9 +24,16 @@ export type Profile = {
   is_vulnerable: number;
   aynis: number;
   easy_mode: number;
+  first_name?: string | null;
+  last_name?: string | null;
+  demo_mode?: number | null;
+  public_home_lat?: number | null;
+  public_home_lng?: number | null;
   created_at: string;
   updated_at: string;
 };
+
+export type ReviewStatus = 'pendiente' | 'aprobado' | 'rechazado';
 
 export type ListingKind = 'servicio' | 'producto';
 
@@ -47,6 +54,10 @@ export type Listing = {
   emergency_capability: string | null;
   visto_bueno_count: number;
   is_active: number;
+  review_status?: ReviewStatus | null;
+  review_note?: string | null;
+  public_lat?: number | null;
+  public_lng?: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -80,6 +91,10 @@ export type Favor = {
   mobility_days: string | null; // JSON string[]
   mobility_time: string | null;
   mobility_role: MobilityRole | null;
+  review_status?: ReviewStatus | null;
+  review_note?: string | null;
+  public_lat?: number | null;
+  public_lng?: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -99,6 +114,8 @@ export type FavorResponse = {
   distance_m: number;
   status: ResponseStatus;
   thanks_message: string | null;
+  public_lat?: number | null;
+  public_lng?: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -121,6 +138,10 @@ export type EmergencyReport = {
   status: ReportStatus;
   origin: 'online' | 'mesh' | 'sms';
   mesh_hops: number | null;
+  review_status?: ReviewStatus | null;
+  review_note?: string | null;
+  public_lat?: number | null;
+  public_lng?: number | null;
   created_at: string;
   updated_at: string;
 };

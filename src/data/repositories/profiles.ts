@@ -4,6 +4,7 @@ import { bumpTables } from '@/data/store';
 import type { Profile } from '@/data/types';
 import { currentUserId, useSession } from '@/features/session/store';
 import { currentCoords } from '@/lib/location';
+import { publicCoords } from '@/lib/privacy';
 import { DEMO_ZONE_ID } from '@/lib/zone';
 
 export async function getProfile(id: string): Promise<Profile | null> {
@@ -19,19 +20,25 @@ export async function getMyProfile(): Promise<Profile | null> {
 export async function ensureMyProfile(): Promise<Profile> {
   const existing = await getMyProfile();
   if (existing) return existing;
-  const { displayName } = useSession.getState();
+  const s = useSession.getState();
   const home = currentCoords();
+  const pub = publicCoords(home);
   const row = {
     id: currentUserId(),
-    display_name: displayName ?? 'Vecino',
-    phone_whatsapp: useSession.getState().whatsapp,
+    display_name: s.displayName ?? 'Vecino',
+    first_name: s.firstName,
+    last_name: s.lastName,
+    phone_whatsapp: s.whatsapp,
     zone_id: DEMO_ZONE_ID,
     home_lat: home.lat,
     home_lng: home.lng,
+    public_home_lat: pub.public_lat,
+    public_home_lng: pub.public_lng,
     is_zone_admin: 0,
     is_vulnerable: 0,
     aynis: 0,
-    easy_mode: useSession.getState().easyMode ? 1 : 0,
+    easy_mode: s.easyMode ? 1 : 0,
+    demo_mode: s.demoMode ? 1 : 0,
   };
   await saveRow('profiles', row);
   return (await getMyProfile())!;
