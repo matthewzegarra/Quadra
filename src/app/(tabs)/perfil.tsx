@@ -156,11 +156,11 @@ export default function PerfilScreen() {
                 ))}
               </View>
               <BigButton label="Activar Modo Emergencia" icon="warning" tone="danger" onPress={activate} />
-              <BigButton label="Revisar publicaciones" icon="shield-checkmark-outline" tone="outline" onPress={() => router.push('/moderar')} />
+              <BigButton label="Revisar publicaciones y avisos" icon="shield-checkmark-outline" tone="outline" onPress={() => router.push('/moderar')} />
             </Card>
           ) : (
             <Card>
-              <AppText color={colors.inkSoft}>¿Eres de la junta vecinal? Ingresa el código de tu zona para poder activar el Modo Emergencia.</AppText>
+              <AppText color={colors.inkSoft}>¿Eres de la junta vecinal o moderador? Ingresa el código de tu zona para activar el Modo Emergencia y revisar publicaciones.</AppText>
               <Field label="Código de la junta" value={pin} onChangeText={setPin} keyboardType="number-pad" secureTextEntry placeholder="••••" />
               <BigButton
                 label="Soy de la junta vecinal"
@@ -173,11 +173,6 @@ export default function PerfilScreen() {
                   Alert.alert(ok ? 'Listo' : 'Código incorrecto', ok ? 'Ahora puedes activar el Modo Emergencia.' : 'Pide el código a tu junta vecinal.');
                 }}
               />
-              {s.demoMode ? (
-                <AppText variant="small" color={colors.textSecondary}>
-                  Demo: el código es 2026.
-                </AppText>
-              ) : null}
             </Card>
           )}
         </Section>

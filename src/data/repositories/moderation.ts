@@ -39,6 +39,32 @@ export function usePendingReviews() {
   });
 }
 
+export type PublishedEmergency = PendingItem & { kind: string; created_at: string; origin: string };
+
+/** Avisos de emergencia ya publicados (salen al instante): la junta puede ocultar los falsos. */
+export function useRecentEmergency() {
+  return useLocalQuery<PublishedEmergency[]>(['emergency_reports'], async (db) => {
+    const since = new Date(Date.now() - 24 * 3600_000).toISOString();
+    const rows = await db.getAllAsync<{ id: string; description: string | null; kind: string; author_name: string | null; created_at: string; origin: string }>(
+      `SELECT id, description, kind, author_name, created_at, origin FROM emergency_reports
+       WHERE coalesce(review_status, 'aprobado') = 'aprobado' AND kind <> 'estoy_bien'
+         AND (author_id IS NULL OR author_id <> ?) AND created_at >= ?
+       ORDER BY created_at DESC LIMIT 30`,
+      [currentUserId(), since],
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      entity: 'emergency_report' as const,
+      table: 'emergency_reports' as const,
+      title: r.description || r.kind,
+      detail: r.author_name ?? 'Vecino',
+      kind: r.kind,
+      created_at: r.created_at,
+      origin: r.origin,
+    }));
+  });
+}
+
 export async function moderateItem(item: PendingItem, decision: Extract<ReviewStatus, 'aprobado' | 'rechazado'>, reason: string) {
   const note = reason.trim().slice(0, 200);
   await patchRow(item.table, item.id, { review_status: decision, review_note: note || null });

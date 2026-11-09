@@ -19,7 +19,7 @@ import { useConnectivity } from '@/lib/connectivity';
 import { mapsLink, openSms } from '@/lib/contact';
 import { useLocationStore } from '@/lib/location';
 import { useMesh } from '@/mesh/MeshRouter';
-import { colors, radius, spacing } from '@/theme/tokens';
+import { colors, elevation, radius, spacing } from '@/theme/tokens';
 
 // SOS en 1 toque + confirmación. Viaja por internet y por la red vecinal (mesh). Plan B: SMS.
 export default function SOSScreen() {
@@ -43,7 +43,7 @@ export default function SOSScreen() {
     `SOS de ${currentUserName()} (Quadra): necesito ${findItem(NEEDS, need).label.toLowerCase()}. ${description ? description + '. ' : ''}${people} persona(s). Ubicación: ${mapsLink(coords)}`;
 
   const send = () =>
-    Alert.alert('¿Enviar SOS?', 'Tus vecinos cercanos recibirán tu pedido de ayuda con tu ubicación.', [
+    Alert.alert('¿Enviar SOS?', 'Tus vecinos cercanos recibirán tu pedido de ayuda con tu ubicación exacta para poder encontrarte.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Enviar SOS',
@@ -100,17 +100,24 @@ export default function SOSScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.top}>
             <CloseButton onPress={() => (router.canGoBack() ? router.back() : router.replace('/emergencia'))} />
-            <View style={styles.meshPill}>
-              <Ionicons name="bluetooth" size={18} color={colors.primaryDark} />
+            <View style={[styles.meshPill, !isOnline && peers === 0 && { backgroundColor: colors.surfaceMuted }]}>
+              <Ionicons name={peers > 0 ? 'bluetooth' : isOnline ? 'cloud-done-outline' : 'search-outline'} size={18} color={colors.primaryDark} />
               <AppText bold variant="small" color={colors.primaryDark}>
                 {peers > 0 ? `Red vecinal · ${peers} conectados` : isOnline ? 'Con internet' : 'Buscando vecinos…'}
               </AppText>
             </View>
           </View>
-          <AppText variant="hero" bold color={colors.danger} accessibilityRole="header">
-            Necesito ayuda
-          </AppText>
-          <AppText color={colors.inkSoft}>¿Qué necesitas? Toca una opción.</AppText>
+          <View style={styles.titleRow}>
+            <View style={styles.titleIcon}>
+              <Ionicons name="warning" size={30} color={colors.white} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <AppText variant="hero" bold color={colors.danger} accessibilityRole="header">
+                Necesito ayuda
+              </AppText>
+              <AppText color={colors.inkSoft}>¿Qué necesitas? Toca una opción.</AppText>
+            </View>
+          </View>
           <View style={styles.grid}>
             {NEEDS.map((n) => {
               const sel = need === n.key;
@@ -121,10 +128,20 @@ export default function SOSScreen() {
                   accessibilityState={{ selected: sel }}
                   accessibilityLabel={n.label}
                   onPress={() => setNeed(n.key)}
-                  style={[styles.need, sel && { borderColor: colors.danger, backgroundColor: colors.dangerSoft }]}
+                  style={({ pressed }) => [styles.need, sel && styles.needOn, pressed && { transform: [{ scale: 0.97 }] }]}
                 >
-                  <Ionicons name={n.icon} size={28} color={sel ? colors.danger : n.color} />
-                  <AppText bold>{n.label}</AppText>
+                  <View style={[styles.needIcon, { backgroundColor: sel ? colors.danger : n.bg }]}>
+                    <Ionicons name={n.icon} size={24} color={sel ? colors.white : n.color} />
+                  </View>
+                  {/* Una sola línea: se achica si no entra ("Medicinas" en pantallas angostas) */}
+                  <AppText bold variant="small" color={sel ? colors.danger : colors.ink} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={styles.needLabel}>
+                    {n.label}
+                  </AppText>
+                  {sel ? (
+                    <View style={styles.needCheck}>
+                      <Ionicons name="checkmark" size={14} color={colors.white} />
+                    </View>
+                  ) : null}
                 </Pressable>
               );
             })}
@@ -162,6 +179,12 @@ export default function SOSScreen() {
           </View>
         </ScrollView>
         <View style={styles.footer}>
+          <View style={styles.privacy}>
+            <Ionicons name="location" size={18} color={colors.danger} />
+            <AppText variant="small" color={colors.inkSoft} style={{ flex: 1 }}>
+              Tu ubicación exacta va con el SOS para que puedan encontrarte.
+            </AppText>
+          </View>
           <BigButton label="Enviar SOS" icon="warning" tone="danger" onPress={send} />
         </View>
       </KeyboardAvoidingView>
@@ -183,22 +206,32 @@ const styles = StyleSheet.create({
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxl },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   meshPill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primarySoft, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: 6 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  titleIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center', ...elevation(2) },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   need: {
     width: '23%',
     flexGrow: 1,
-    minHeight: 84,
+    minHeight: 96,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 6,
+    paddingHorizontal: 4,
+    paddingVertical: spacing.sm,
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
+    ...elevation(1),
   },
+  needOn: { borderColor: colors.danger, backgroundColor: colors.dangerSoft },
+  needIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  needLabel: { textAlign: 'center', alignSelf: 'stretch' },
+  needCheck: { position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center' },
+  privacy: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.xs },
   people: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md },
   step: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
-  footer: { padding: spacing.xl, paddingTop: spacing.sm },
+  footer: { padding: spacing.xl, paddingTop: spacing.sm, gap: spacing.sm },
   sentIcon: { alignSelf: 'center', width: 104, height: 104, borderRadius: 52, backgroundColor: colors.ok, alignItems: 'center', justifyContent: 'center', marginTop: spacing.xl },
   planB: { gap: spacing.md, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.danger, borderRadius: radius.lg, padding: spacing.lg },
 });

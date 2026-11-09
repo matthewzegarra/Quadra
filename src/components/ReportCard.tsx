@@ -38,7 +38,9 @@ export function ReportCard({ r }: { r: ReportWithMeta }) {
   return (
     <Card onPress={() => router.push({ pathname: '/emergencia/recibido/[id]', params: { id: r.id } })} label={`${reportTitle(r)}. ${meta}`} borderColor={urgent ? k.color : undefined}>
       <View style={styles.head}>
-        <Ionicons name={k.icon} size={24} color={k.color} />
+        <View style={[styles.icon, { backgroundColor: k.color }]}>
+          <Ionicons name={k.icon} size={22} color={colors.white} />
+        </View>
         <AppText bold variant="large" style={{ flex: 1 }}>
           {reportTitle(r)}
         </AppText>
@@ -67,7 +69,8 @@ export function ReportCard({ r }: { r: ReportWithMeta }) {
 }
 
 const styles = StyleSheet.create({
-  head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  head: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  icon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   go: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, backgroundColor: colors.ok, borderRadius: radius.md, minHeight: 56 },
 });

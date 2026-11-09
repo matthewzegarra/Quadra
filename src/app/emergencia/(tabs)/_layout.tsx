@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { useEmergencyMode } from '@/data/repositories/emergency';
-import { colors, MIN_TOUCH, spacing } from '@/theme/tokens';
+import { colors, elevation, MIN_TOUCH, radius, spacing } from '@/theme/tokens';
 
 const TABS: { name: string; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { name: 'index', label: 'Tablero', icon: 'location-outline' },
@@ -31,7 +31,9 @@ function EmergencyTabBar({ state, navigateToTab }: BottomTabBarProps) {
             onPress={() => route && navigateToTab(route.key)}
             style={styles.item}
           >
-            <Ionicons name={t.icon} size={28} color={tint} />
+            <View style={[styles.iconSlot, selected && styles.iconSlotOn]}>
+              <Ionicons name={t.icon} size={26} color={tint} />
+            </View>
             <AppText variant="caption" bold color={tint} style={{ textAlign: 'center' }} numberOfLines={2} maxFontSizeMultiplier={1}>
               {t.label}
             </AppText>
@@ -56,6 +58,16 @@ export default function EmergencyTabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', backgroundColor: colors.surface, borderTopWidth: 3, borderTopColor: colors.danger, paddingTop: spacing.sm },
+  bar: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.lg + 4,
+    borderTopRightRadius: radius.lg + 4,
+    paddingTop: spacing.sm,
+    ...elevation(3),
+  },
+  // Indicador de la pestaña activa (pastilla roja suave detrás del ícono)
+  iconSlot: { width: 60, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  iconSlotOn: { backgroundColor: colors.dangerSoft },
   item: { flex: 1, minHeight: MIN_TOUCH, alignItems: 'center', justifyContent: 'center', gap: 2, paddingHorizontal: 4 },
 });

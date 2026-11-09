@@ -8,6 +8,7 @@ import { AppText } from '@/components/AppText';
 import { BigButton } from '@/components/BigButton';
 import { Field, Notice, Segmented } from '@/components/ui';
 import { ensureMyProfile, remapIdentity, updateMyProfile } from '@/data/repositories/profiles';
+import { startSyncEngine, syncNow } from '@/data/sync/SyncEngine';
 import { useSession } from '@/features/session/store';
 import { normalizePhone } from '@/lib/contact';
 import { refreshLocation } from '@/lib/location';
@@ -75,10 +76,8 @@ export default function BienvenidaScreen() {
         whatsapp = wa ?? remote?.phone_whatsapp ?? null;
       }
 
-      let last4: string | null = session.dniLast4;
-      if (isNew && dniDigits.length === 8) last4 = (await saveDni(dniDigits)) ?? dniDigits.slice(-4);
-
-      session.setAccount({ firstName: first || 'Vecino', lastName: last, email: email.trim(), dniLast4: last4, whatsapp });
+      const newDni = isNew && dniDigits.length === 8;
+      session.setAccount({ firstName: first || 'Vecino', lastName: last, email: email.trim(), dniLast4: newDni ? dniDigits.slice(-4) : session.dniLast4, whatsapp });
       await refreshLocation();
       await initNotifications(true);
       await updateMyProfile({
@@ -89,6 +88,15 @@ export default function BienvenidaScreen() {
         demo_mode: session.demoMode ? 1 : 0,
       });
       await ensureMyProfile();
+
+      // Con sesión nueva arrancamos la sincronización ya (antes esperaba a reabrir la app) y subimos
+      // el perfil ANTES del DNI: el servidor guarda el DNI colgado del perfil y fallaba si aún no existía.
+      startSyncEngine();
+      await syncWithin(8000);
+      if (newDni) {
+        const saved = (await saveDni(dniDigits)) ?? (await syncWithin(8000).then(() => saveDni(dniDigits)));
+        if (saved) useSession.getState().setAccount({ ...accountOf(useSession.getState()), dniLast4: saved });
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.replace('/');
     },
@@ -410,6 +418,16 @@ export default function BienvenidaScreen() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+/** Sincroniza, pero sin dejar al vecino esperando más de `ms` con mala señal. */
+function syncWithin(ms: number): Promise<void> {
+  return Promise.race([syncNow(), new Promise<void>((r) => setTimeout(r, ms))]);
+}
+
+/** Datos de cuenta actuales (para cambiar solo un campo con setAccount). */
+function accountOf(s: ReturnType<typeof useSession.getState>) {
+  return { firstName: s.firstName ?? 'Vecino', lastName: s.lastName ?? '', email: s.email ?? '', dniLast4: s.dniLast4, whatsapp: s.whatsapp };
 }
 
 function TextLink({ label, onPress }: { label: string; onPress: () => void }) {

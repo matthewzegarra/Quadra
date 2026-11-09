@@ -7,7 +7,7 @@ import { useLocalQuery } from '@/data/useLocalQuery';
 import { REPORT_KINDS } from '@/features/catalog';
 import { currentUserId, currentUserName, useSession } from '@/features/session/store';
 import { distanceMeters, type LatLng } from '@/lib/geo';
-import { located, reviewForNewPost, shareHome, sharePoint } from '@/lib/privacy';
+import { located, shareHome, sharePoint } from '@/lib/privacy';
 import { newId } from '@/lib/ids';
 import { markNotified, zoneEmergencyKey } from '@/lib/notify';
 import { currentCoords } from '@/lib/location';
@@ -81,6 +81,8 @@ export function useVulnerableNeighbors(from: LatLng) {
 
 export async function createReport(input: { kind: ReportKind; need?: string | null; description?: string | null; people_count?: number }) {
   const at = currentCoords();
+  // El SOS viaja con el punto exacto (para que lo encuentren). Lo demás, con la zona de ~250 m.
+  const where = input.kind === 'sos' ? { lat: at.lat, lng: at.lng, public_lat: at.lat, public_lng: at.lng } : located(at);
   const row = {
     id: newId(),
     author_id: currentUserId(),
@@ -91,8 +93,9 @@ export async function createReport(input: { kind: ReportKind; need?: string | nu
     description: input.description?.trim() || null,
     people_count: input.people_count ?? 1,
     priority: REPORT_KINDS[input.kind].priority,
-    ...located(at),
-    review_status: input.kind === 'estoy_bien' ? 'aprobado' : reviewForNewPost(),
+    ...where,
+    // Emergencia: sale al instante. La junta revisa después y puede ocultar los falsos (panel Revisión).
+    review_status: 'aprobado',
     status: 'abierto',
     origin: 'online',
     mesh_hops: 0,

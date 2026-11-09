@@ -12,7 +12,7 @@ import { firstName, NEEDS } from '@/features/catalog';
 import { useCurrentUserId } from '@/features/session/store';
 import { WALKING_RADIUS_M } from '@/lib/geo';
 import { useLocationStore } from '@/lib/location';
-import { colors, radius, spacing } from '@/theme/tokens';
+import { colors, elevation, radius, spacing } from '@/theme/tokens';
 
 // Economía Solidaria: coordinar y compartir recursos críticos. Diseño: design/pantallas/Economia.dc.html
 const KINDS: ReportKind[] = ['recurso_necesito', 'recurso_ofrezco'];
@@ -89,11 +89,13 @@ export default function EconomiaScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`${n.label}. ${c.offer} ofrecen, ${c.need} necesitan`}
                 onPress={() => publish(n.key, n.label)}
-                style={[styles.tile, hot && { borderColor: colors.danger, borderWidth: 3 }]}
+                style={({ pressed }) => [styles.tile, hot && { borderColor: colors.danger, borderWidth: 3 }, pressed && { transform: [{ scale: 0.98 }] }]}
               >
                 <View style={styles.tileHead}>
-                  <Ionicons name={n.icon} size={30} color={n.color} />
-                  <AppText bold variant="large">
+                  <View style={[styles.tileIcon, { backgroundColor: n.bg }]}>
+                    <Ionicons name={n.icon} size={24} color={n.color} />
+                  </View>
+                  <AppText bold variant="large" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ flex: 1 }}>
                     {n.label}
                   </AppText>
                 </View>
@@ -157,7 +159,8 @@ const styles = StyleSheet.create({
   toggle: { flexDirection: 'row', borderWidth: 2, borderColor: colors.danger, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.surface },
   toggleBtn: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  tile: { width: '47%', flexGrow: 1, minHeight: 120, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.lg, justifyContent: 'space-between' },
+  tile: { width: '47%', flexGrow: 1, minHeight: 120, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.lg, justifyContent: 'space-between', gap: spacing.sm, ...elevation(1) },
+  tileIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   tileHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   offerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   go: { backgroundColor: colors.ok, borderRadius: radius.md, minHeight: 56, paddingHorizontal: spacing.xl, justifyContent: 'center' },

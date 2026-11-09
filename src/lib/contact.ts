@@ -1,4 +1,4 @@
-import { Linking } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import type { LatLng } from '@/lib/geo';
 import { supabase } from '@/lib/supabase';
 
@@ -13,10 +13,6 @@ export function normalizePhone(raw: string | null | undefined): string | null {
   return null;
 }
 
-/**
- * Abre WhatsApp con mensaje prellenado. Sin número (datos demo sin teléfonos reales)
- * usa EXPO_PUBLIC_DEMO_WHATSAPP o abre WhatsApp para elegir el contacto.
- */
 /** Teléfono de un servicio aprobado. No está en el listado: se pide al tocarlo. */
 export async function revealListingPhone(listingId: string, local: string | null | undefined): Promise<string | null> {
   if (local) return local;
@@ -35,11 +31,20 @@ export async function revealAcceptedOffer(responseId: string): Promise<{ lat: nu
   return { lat: row.lat, lng: row.lng, phone: typeof row.phone === 'string' ? row.phone : null };
 }
 
+/**
+ * Abre WhatsApp con mensaje prellenado (https://wa.me/51XXXXXXXXX?text=…).
+ * Sin número (datos demo o vecino que no dejó su WhatsApp) usa EXPO_PUBLIC_DEMO_WHATSAPP;
+ * si tampoco hay, WhatsApp abre con el mensaje listo para elegir el contacto.
+ */
 export async function openWhatsApp(phone: string | null | undefined, message: string) {
   const num = normalizePhone(phone) ?? normalizePhone(DEMO_WHATSAPP);
   const text = encodeURIComponent(message);
   const url = num ? `https://wa.me/${num}?text=${text}` : `https://wa.me/?text=${text}`;
-  await Linking.openURL(url);
+  try {
+    await Linking.openURL(url);
+  } catch {
+    Alert.alert('No pudimos abrir WhatsApp', 'Revisa que WhatsApp esté instalado o inténtalo de nuevo con señal.');
+  }
 }
 
 export function mapsLink(p: LatLng): string {
