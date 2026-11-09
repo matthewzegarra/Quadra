@@ -202,7 +202,7 @@
       min-height: 200px; display: grid; place-items: center; text-align: center; padding: 24px; gap: 10px;
     }
     .video-slot .icon { width: 44px; height: 44px; color: var(--lime); }
-    .video-slot iframe { width: min(360px, 100%); aspect-ratio: 9 / 16; border: 0; border-radius: 16px; }
+    .video-slot iframe { width: 100%; max-width: 720px; aspect-ratio: 16 / 9; border: 0; border-radius: 16px; }
 
     .final {
       margin: 16px 0 48px; border-radius: 28px; background: var(--lime); color: var(--forest); padding: 28px 22px 0;
@@ -504,7 +504,7 @@
     const CONFIG = {
       repo: 'matthewzegarra/Quadra',
       apkName: 'quadra.apk',
-      videoUrl: '',
+      videoUrl: 'https://www.youtube-nocookie.com/embed/MZYl-mH7RVo',
       fallbackApk: 'https://expo.dev/artifacts/eas/kHz9FY4cpXDBl1nh2WXlZ5Xn1GWLE4577QvI0rZdk_I.apk',
     };
 
@@ -537,6 +537,8 @@
       frame.src = CONFIG.videoUrl;
       frame.title = 'Demo de Quadra';
       frame.allowFullscreen = true;
+      frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
       slot.appendChild(frame);
     }
 
