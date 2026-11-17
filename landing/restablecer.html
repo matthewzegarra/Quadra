@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es-PE">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Nueva contraseña · Quadra</title>
+  <meta name="robots" content="noindex" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="theme-color" content="#123023" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <style>
+    :root { --forest: #123023; --lime: #ceed68; --lime-soft: #f1f9d6; --cream: #f6f5ee; --paper: #fffdf8; --ink: #14251c; --muted: #47594e; --line: #dfe3d6; --danger: #b42318; --danger-soft: #fde8e4; --ok: #1e6b45; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; min-height: 100dvh; background: var(--cream); color: var(--ink);
+      font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 18px; line-height: 1.5;
+      display: grid; place-items: center; padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+    }
+    main { width: 100%; max-width: 440px; display: grid; gap: 18px; text-align: center; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; justify-self: center; font-weight: 700; font-size: 22px; }
+    .brand img { width: 38px; height: 38px; border-radius: 11px; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 28px; padding: 28px 22px; display: grid; gap: 14px; box-shadow: 0 8px 24px rgba(11, 32, 24, .08); text-align: left; }
+    h1 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: -.5px; text-align: center; }
+    p { margin: 0; color: var(--muted); }
+    label { font-weight: 700; font-size: 16px; color: var(--muted); display: grid; gap: 6px; }
+    input {
+      font: inherit; min-height: 58px; padding: 0 16px; border-radius: 16px; border: 2px solid var(--line); background: #fff; color: var(--ink); width: 100%;
+    }
+    input:focus { outline: none; border-color: var(--forest); }
+    input[aria-invalid="true"] { border-color: var(--danger); }
+    .rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 16px; color: var(--muted); }
+    .rules li::before { content: "○ "; }
+    .rules li.ok { color: var(--ok); }
+    .rules li.ok::before { content: "✓ "; }
+    button, .btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; padding: 0 22px; border-radius: 16px; border: 0; cursor: pointer;
+      font: inherit; font-weight: 700; font-size: 19px; text-decoration: none; background: var(--forest); color: var(--lime); width: 100%;
+    }
+    button[disabled] { opacity: .6; cursor: progress; }
+    .msg { border-radius: 14px; padding: 12px 14px; font-size: 16px; }
+    .msg.error { background: var(--danger-soft); color: var(--danger); }
+    small { color: var(--muted); font-size: 15px; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 3px solid var(--lime); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="brand"><img src="logo.png" alt="" width="38" height="38" /> Quadra</span>
+
+    <!-- Formulario -->
+    <form class="card" id="form" novalidate>
+      <h1>Crea tu nueva contraseña</h1>
+      <p>Después vuelve a Quadra y entra con tu correo y esta contraseña.</p>
+      <label>Nueva contraseña
+        <input id="pass" type="password" autocomplete="new-password" minlength="8" maxlength="72" required />
+      </label>
+      <ul class="rules" aria-live="polite">
+        <li id="r-len">Mínimo 8 caracteres</li>
+        <li id="r-mix">Con letras y números</li>
+      </ul>
+      <label>Repite la contraseña
+        <input id="pass2" type="password" autocomplete="new-password" maxlength="72" required />
+      </label>
+      <div class="msg error" id="err" role="alert" hidden></div>
+      <button type="submit" id="save">Guardar contraseña</button>
+    </form>
+
+    <!-- Listo -->
+    <section class="card" id="done" hidden>
+      <h1>¡Listo! Ya tienes nueva contraseña</h1>
+      <p>Vuelve a Quadra y entra con tu correo y tu nueva contraseña.</p>
+      <a class="btn" href="quadra://bienvenida">Abrir Quadra</a>
+    </section>
+
+    <!-- Enlace vencido -->
+    <section class="card" id="fail" hidden>
+      <h1>Este enlace ya no sirve</h1>
+      <p id="fail-text">Puede que haya vencido o que ya lo hayas usado. Pide uno nuevo desde la app con “¿Olvidaste tu contraseña?”.</p>
+      <a class="btn" href="quadra://bienvenida">Abrir Quadra</a>
+    </section>
+
+    <small>Quadra · Hoy te ayudo, mañana me ayudas</small>
+  </main>
+
+  <script>
+    // Supabase redirige aquí con un token de recuperación de un solo uso en el "#".
+    // Lo guardamos solo en memoria, limpiamos la barra de direcciones y lo usamos una vez
+    // para cambiar la contraseña (PUT /auth/v1/user). No se guarda en el navegador.
+    (function () {
+      var SUPABASE_URL = 'https://epoecbvoqeenalpmhfyx.supabase.co';
+      // Clave pública (anon): pensada para el cliente; la protegen RLS y el token del correo.
+      var ANON_KEY = 'sb_publishable_SLqWI2hq0aV-30E0MPJsAg_BkvgFqhb';
+
+      var raw = (location.hash || '').replace(/^#/, '') + '&' + (location.search || '').replace(/^\?/, '');
+      var params = new URLSearchParams(raw);
+      if (location.hash || location.search) history.replaceState(null, '', location.pathname);
+      var token = params.get('access_token');
+      var $ = function (id) { return document.getElementById(id); };
+
+      function show(id) {
+        ['form', 'done', 'fail'].forEach(function (s) { $(s).hidden = s !== id; });
+      }
+      if (params.get('error') || params.get('error_code') || !token || params.get('type') !== 'recovery') {
+        show('fail');
+        return;
+      }
+
+      var pass = $('pass'), pass2 = $('pass2'), err = $('err'), save = $('save');
+      function strong(p) { return p.length >= 8 && /[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(p) && /\d/.test(p); }
+      function paint() {
+        var p = pass.value;
+        $('r-len').className = p.length >= 8 ? 'ok' : '';
+        $('r-mix').className = /[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(p) && /\d/.test(p) ? 'ok' : '';
+      }
+      pass.addEventListener('input', paint);
+
+      $('form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        err.hidden = true;
+        pass.removeAttribute('aria-invalid');
+        pass2.removeAttribute('aria-invalid');
+        if (!strong(pass.value)) {
+          pass.setAttribute('aria-invalid', 'true');
+          err.textContent = 'Usa mínimo 8 caracteres, con letras y números.';
+          err.hidden = false;
+          return;
+        }
+        if (pass.value !== pass2.value) {
+          pass2.setAttribute('aria-invalid', 'true');
+          err.textContent = 'Las dos contraseñas no coinciden.';
+          err.hidden = false;
+          return;
+        }
+        save.disabled = true;
+        save.textContent = 'Guardando…';
+        fetch(SUPABASE_URL + '/auth/v1/user', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', apikey: ANON_KEY, Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ password: pass.value }),
+        })
+          .then(function (r) {
+            if (r.ok) {
+              token = null;
+              pass.value = pass2.value = '';
+              show('done');
+              return;
+            }
+            return r.json().catch(function () { return {}; }).then(function (b) {
+              var code = String((b && (b.error_code || b.code)) || '') + ' ' + String((b && (b.msg || b.message)) || '');
+              if (r.status === 401 || /expired|invalid/i.test(code)) { show('fail'); return; }
+              err.textContent = /weak|password/i.test(code)
+                ? 'Esa contraseña es muy fácil de adivinar. Prueba con otra.'
+                : /same/i.test(code)
+                  ? 'Usa una contraseña distinta a la anterior.'
+                  : 'No pudimos guardarla. Inténtalo otra vez.';
+              err.hidden = false;
+            });
+          })
+          .catch(function () {
+            err.textContent = 'Sin conexión. Revisa tu internet e inténtalo otra vez.';
+            err.hidden = false;
+          })
+          .finally(function () {
+            save.disabled = false;
+            save.textContent = 'Guardar contraseña';
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

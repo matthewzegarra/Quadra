@@ -48,7 +48,8 @@
     "build:dev": "eas build --profile development --platform android",
     "build:apk": "eas build --profile preview --platform android",
     "postinstall": "patch-package",
-    "seed": "node scripts/build-seed.mjs"
+    "seed": "node scripts/build-seed.mjs",
+    "test:logic": "node --test scripts/test-logic.cjs"
   },
   "private": true
 }

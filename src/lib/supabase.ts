@@ -19,12 +19,22 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
     })
   : null;
 
-/** Sesión ya guardada en el celular. No crea una cuenta anónima. */
+/**
+ * Sesión ya guardada en el celular. No crea una cuenta anónima.
+ * Las primeras versiones de la app (7–9 nov) entraban con sesiones anónimas de Supabase: esas ya no
+ * cuentan como cuenta (cualquiera podía crear una y publicar). Se cierran y el vecino queda "sin cuenta"
+ * hasta que entre con su correo.
+ */
 export async function restoreSession(): Promise<string | null> {
   if (!supabase) return null;
   try {
     const { data } = await supabase.auth.getSession();
-    return data.session?.user.id ?? null;
+    const user = data.session?.user;
+    if (user?.is_anonymous) {
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+      return null;
+    }
+    return user?.id ?? null;
   } catch {
     return null;
   }
@@ -51,7 +61,7 @@ function authError(message: string, code?: string): string {
     return 'Ese correo ya tiene cuenta. Toca “Ya tengo cuenta” y entra con tu contraseña.';
   if (m.includes('rate limit') || m.includes('over_email_send_rate') || m.includes('too many'))
     return 'Hiciste varios intentos seguidos. Espera unos minutos y vuelve a probar.';
-  if (m.includes('weak') || m.includes('password')) return 'Usa una contraseña de al menos 8 letras o números.';
+  if (m.includes('weak') || m.includes('password')) return 'Usa una contraseña de al menos 8 caracteres, con letras y números.';
   if (m.includes('email') && (m.includes('invalid') || m.includes('format'))) return 'Ese correo no parece válido. Revísalo.';
   if (m.includes('signup') && m.includes('disabled')) return 'Por ahora no se pueden crear cuentas. Entra solo en este celular.';
   if (m.includes('network') || m.includes('fetch')) return 'Sin conexión. Puedes entrar solo en este celular.';
@@ -82,6 +92,29 @@ export async function signInWithEmail(email: string, password: string, mode: 'si
   } catch {
     return { error: 'Sin conexión. Puedes entrar solo en este celular.' };
   }
+}
+
+/** Página de la landing donde el vecino escribe su nueva contraseña (tiene que estar en Redirect URLs). */
+export const PASSWORD_RESET_URL = process.env.EXPO_PUBLIC_PASSWORD_RESET_URL || 'https://quadra-peak.vercel.app/restablecer';
+
+/**
+ * "¿Olvidaste tu contraseña?": Supabase envía un enlace de un solo uso. Respondemos igual exista o no
+ * la cuenta (así nadie puede averiguar qué correos están registrados).
+ */
+export async function sendPasswordReset(email: string): Promise<string | null> {
+  if (!supabase) return 'Falta configurar Supabase en este celular.';
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: PASSWORD_RESET_URL });
+    if (error && /rate|too many|over_email/i.test(`${error.code ?? ''} ${error.message}`)) return authError(error.message, error.code);
+    return null;
+  } catch {
+    return 'Sin conexión. Inténtalo cuando tengas señal.';
+  }
+}
+
+/** Contraseña nueva: mínimo 8 caracteres, con al menos una letra y un número. */
+export function isStrongPassword(p: string): boolean {
+  return p.length >= 8 && /[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(p) && /\d/.test(p);
 }
 
 /** Vuelve a enviar el correo de confirmación. */

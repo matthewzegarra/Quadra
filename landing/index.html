@@ -257,13 +257,48 @@
       .step strong { align-self: start; }
     }
 
+
+    /* ── Animaciones ligadas al scroll (CSS puro, sin JavaScript) ─────────
+       Mejora progresiva: solo en navegadores con animation-timeline y para quien
+       no pidió reducir el movimiento. Sin soporte, la página se ve igual que antes. */
+    .scroll-progress { display: none; }
+    @media (prefers-reduced-motion: no-preference) {
+      @supports (animation-timeline: view()) {
+        .scroll-progress {
+          display: block; position: fixed; inset: 0 0 auto 0; height: 4px; z-index: 60;
+          background: var(--lime); transform-origin: 0 50%; transform: scaleX(0);
+          animation: q-progress linear both; animation-timeline: scroll(root);
+        }
+        .stat, .mode, .card, .step, .video-slot, .final {
+          animation: q-rise linear both;
+          animation-timeline: view();
+          animation-range: entry 0% cover 30%;
+        }
+        .stat:nth-child(2), .mode:nth-child(2), .card:nth-child(2), .step:nth-child(2) { animation-range: entry 6% cover 36%; }
+        .stat:nth-child(3), .card:nth-child(3), .step:nth-child(3) { animation-range: entry 12% cover 42%; }
+        .phone { animation: q-tilt linear both; animation-timeline: scroll(root); animation-range: 0 70vh; }
+        .quadri { animation: q-wave linear both; animation-timeline: scroll(root); animation-range: 0 60vh; }
+        .top { animation: q-header linear both; animation-timeline: scroll(root); animation-range: 0 140px; }
+      }
+    }
+    @keyframes q-progress { to { transform: scaleX(1); } }
+    @keyframes q-rise { from { opacity: 0; transform: translateY(32px) scale(.97); } to { opacity: 1; transform: none; } }
+    @keyframes q-tilt { to { transform: translateY(-18px) rotate(-2deg); } }
+    @keyframes q-wave { 0% { transform: none; } 50% { transform: translateY(-10px) rotate(-6deg); } 100% { transform: translateY(-4px) rotate(3deg); } }
+    @keyframes q-header { to { box-shadow: 0 6px 20px rgba(11, 32, 24, .12); } }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .btn { transition: none; }
     }
   </style>
+  <script>
+    // Enlace de "¿Olvidaste tu contraseña?" que cayó aquí: lo llevamos a la página correcta.
+    if (/type=recovery/.test(location.hash)) location.replace('/restablecer' + location.hash);
+  </script>
 </head>
 <body>
+  <div class="scroll-progress" aria-hidden="true"></div>
   <!-- Íconos: Lucide (ISC), elegidos en allsvgicons.com. Ver TERCEROS.md -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>

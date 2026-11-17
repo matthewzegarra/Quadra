@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, AppState, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, AppState, Image, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BigButton } from '@/components/BigButton';
@@ -13,7 +13,7 @@ import { useSession } from '@/features/session/store';
 import { normalizePhone } from '@/lib/contact';
 import { refreshLocation } from '@/lib/location';
 import { initNotifications } from '@/lib/notify';
-import { fetchMyRemoteProfile, resendConfirmation, saveDni, signInWithEmail } from '@/lib/supabase';
+import { fetchMyRemoteProfile, isStrongPassword, resendConfirmation, saveDni, sendPasswordReset, signInWithEmail } from '@/lib/supabase';
 import { colors, elevation, MIN_TOUCH, radius, spacing } from '@/theme/tokens';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,7 +47,9 @@ export default function BienvenidaScreen() {
 
   const dniDigits = dni.replace(/\D/g, '');
   const emailOk = EMAIL.test(email.trim());
-  const passOk = password.length >= 8;
+  // Cuentas nuevas: 8+ caracteres con letras y números. Para entrar basta la que ya tenía (8+).
+  const passOk = mode === 'signup' ? isStrongPassword(password) : password.length >= 8;
+  const [resetSent, setResetSent] = useState(false);
   const namesOk = firstName.trim().length >= 2 && lastName.trim().length >= 2;
   const accountOk = emailOk && passOk && (mode === 'login' || (namesOk && dniDigits.length === 8));
 
@@ -170,6 +172,20 @@ export default function BienvenidaScreen() {
     }
   };
 
+  const forgot = async () => {
+    if (!emailOk) {
+      setTouched(true);
+      setError('Escribe tu correo y vuelve a tocar “¿Olvidaste tu contraseña?”.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const err = await sendPasswordReset(email);
+    setBusy(false);
+    if (err) setError(err);
+    else setResetSent(true);
+  };
+
   /** Sin cuenta (o editando): todo queda en este celular. */
   const enterLocal = async () => {
     if (busy) return;
@@ -213,7 +229,7 @@ export default function BienvenidaScreen() {
   if (editing) {
     return (
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
             <AppText variant="hero" bold accessibilityRole="header">
               Tu cuenta
@@ -300,7 +316,7 @@ export default function BienvenidaScreen() {
   const showErr = (bad: boolean) => touched && bad;
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.hero}>
             <View style={styles.brandRow}>
@@ -328,6 +344,7 @@ export default function BienvenidaScreen() {
               setMode(m);
               setError(null);
               setTouched(false);
+              setResetSent(false);
             }}
             options={[
               { value: 'signup', label: 'Crear cuenta' },
@@ -371,8 +388,17 @@ export default function BienvenidaScreen() {
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             textContentType={mode === 'signup' ? 'newPassword' : 'password'}
             invalid={showErr(!passOk)}
-            hint={mode === 'signup' || showErr(!passOk) ? 'Al menos 8 letras o números.' : undefined}
+            hint={mode === 'signup' || showErr(!passOk) ? 'Mínimo 8 caracteres, con letras y números.' : undefined}
           />
+          {mode === 'login' ? (
+            resetSent ? (
+              <Notice tone="ok" title="Revisa tu correo" text="Si el correo tiene cuenta, te llegó un enlace para crear una nueva contraseña. Vence en 1 hora." />
+            ) : (
+              <View style={{ alignItems: 'flex-end' }}>
+                <TextLink label="¿Olvidaste tu contraseña?" onPress={() => void forgot()} />
+              </View>
+            )
+          ) : null}
           {mode === 'signup' ? (
             <>
               <Field

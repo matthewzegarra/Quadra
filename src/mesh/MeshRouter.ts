@@ -85,6 +85,14 @@ async function handleControl(msg: MeshMessage) {
   const db = await getDb();
   const zone = await db.getFirstAsync<Zone>('SELECT * FROM zones WHERE id = ?', [DEMO_ZONE_ID]);
   if (!zone) return;
+  // Solo la junta vecinal puede prender o apagar el modo para todo el barrio. Un mensaje de un
+  // celular que no es de la junta (o falsificado) no cambia nada aquí; igual se reenvía, porque
+  // otro vecino puede tener el perfil de la junta sincronizado.
+  const author = msg.a ? await db.getFirstAsync<{ is_zone_admin: number }>('SELECT is_zone_admin FROM profiles WHERE id = ?', [msg.a]) : null;
+  if (author?.is_zone_admin !== 1) {
+    console.warn('[mesh] control ignorado: el autor no es de la junta vecinal');
+    return;
+  }
   const on = msg.t === 'EMERGENCY_ON';
   await putLocal('zones', {
     ...zone,
@@ -193,31 +201,44 @@ async function loadRetained() {
   }
 }
 
-export async function startMesh(): Promise<void> {
-  if (transport) return;
-  const t = new NearbyTransport();
-  transport = t;
-  unsubs = [t.onMessage((m, from) => void onMessage(m, from)), t.onPeersChanged((p) => void onPeers(p))];
-  try {
-    await loadRetained();
-    await t.start(currentUserId(), firstName(currentUserName()));
-    useMesh.setState({ running: true, error: null });
-  } catch (e) {
-    useMesh.setState({ running: false, error: e instanceof Error ? e.message : String(e) });
-    unsubs.forEach((u) => u());
-    unsubs = [];
-    transport = null;
-  }
+// start/stop van en fila: si la señal parpadea mientras se piden permisos, nunca quedan dos
+// transportes prendidos ni uno huérfano anunciando por Bluetooth sin que nadie lo pueda apagar.
+let lifecycle: Promise<void> = Promise.resolve();
+const enqueueLifecycle = (fn: () => Promise<void>) => {
+  lifecycle = lifecycle.then(fn, fn).catch((e) => console.warn('[mesh]', e));
+  return lifecycle;
+};
+
+export function startMesh(opts: { askPermissions?: boolean } = {}): Promise<void> {
+  return enqueueLifecycle(async () => {
+    if (transport) return;
+    const t = new NearbyTransport();
+    transport = t;
+    unsubs = [t.onMessage((m, from) => void onMessage(m, from)), t.onPeersChanged((p) => void onPeers(p))];
+    try {
+      await loadRetained();
+      await t.start(currentUserId(), firstName(currentUserName()), { askPermissions: opts.askPermissions ?? true });
+      useMesh.setState({ running: true, error: null });
+    } catch (e) {
+      useMesh.setState({ running: false, error: e instanceof Error ? e.message : String(e) });
+      unsubs.forEach((u) => u());
+      unsubs = [];
+      transport = null;
+      await t.stop().catch(() => {});
+    }
+  });
 }
 
-export async function stopMesh(): Promise<void> {
-  const t = transport;
-  transport = null;
-  unsubs.forEach((u) => u());
-  unsubs = [];
-  knownConnected = new Set();
-  await t?.stop();
-  useMesh.setState({ running: false, peers: [] });
+export function stopMesh(): Promise<void> {
+  return enqueueLifecycle(async () => {
+    const t = transport;
+    transport = null;
+    unsubs.forEach((u) => u());
+    unsubs = [];
+    knownConnected = new Set();
+    await t?.stop();
+    useMesh.setState({ running: false, peers: [] });
+  });
 }
 
 /** Publica un reporte propio por el mesh (además de la outbox). */

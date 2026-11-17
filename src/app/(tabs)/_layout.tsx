@@ -2,6 +2,7 @@ import { Redirect } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import { AppTabBar } from '@/components/AppTabBar';
 import { useEmergencyMode } from '@/data/repositories/emergency';
+import { useZoneStore } from '@/data/zoneStore';
 import { useSession } from '@/features/session/store';
 import { colors } from '@/theme/tokens';
 
@@ -9,11 +10,12 @@ export default function TabsLayout() {
   const onboardingDone = useSession((s) => s.onboardingDone);
   const hasName = useSession((s) => Boolean(s.displayName));
   const { active } = useEmergencyMode();
+  const loaded = useZoneStore((s) => s.loaded);
 
   if (!onboardingDone) return <Redirect href="/tutorial" />;
   if (!hasName) return <Redirect href="/bienvenida" />;
   // La app "evoluciona": en emergencia toda la navegación cambia al Tablero de Ayuda Humanitaria
-  if (active) return <Redirect href="/emergencia" />;
+  if (loaded && active) return <Redirect href="/emergencia" />;
 
   return (
     <Tabs

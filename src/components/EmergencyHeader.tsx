@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
-import { closeLocalEmergency, deactivateZoneEmergency, useEmergencyMode } from '@/data/repositories/emergency';
+import { closeLocalEmergency, deactivateZoneEmergency, useEmergencyMode, viewNormalApp } from '@/data/repositories/emergency';
 import type { Profile } from '@/data/types';
 import { useLocalQuery } from '@/data/useLocalQuery';
 import { EMERGENCY_TYPES } from '@/features/catalog';
@@ -20,7 +20,7 @@ function minutesSince(iso: string | null): number | null {
 /** Header rojo del Modo Emergencia: "EMERGENCIA · SISMO · ACTIVA HACE 12 MIN" + estado de la red vecinal. */
 export function EmergencyHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   const insets = useSafeAreaInsets();
-  const { official, type, startedAt } = useEmergencyMode();
+  const { official, type, startedAt, zone } = useEmergencyMode();
   const peers = useMesh((s) => s.peers.filter((p) => p.connected).length);
   const meshOn = useMesh((s) => s.running);
   const meshError = useMesh((s) => s.error);
@@ -42,7 +42,11 @@ export function EmergencyHeader({ title, subtitle }: { title: string; subtitle?:
 
   const exit = () => {
     if (official && !isAdmin) {
-      Alert.alert('Emergencia activa', 'La junta vecinal activó el Modo Emergencia para todo el barrio. Se apagará cuando ellos lo indiquen.');
+      // Nunca dejamos al vecino atrapado: puede ver la app normal y volver con la barra roja de abajo.
+      Alert.alert('Emergencia activa en tu barrio', 'La junta vecinal la apagará cuando pase. Puedes usar Quadra normal y volver al tablero cuando quieras.', [
+        { text: 'Quedarme aquí', style: 'cancel' },
+        { text: 'Ver Quadra normal', onPress: () => viewNormalApp(zone) },
+      ]);
       return;
     }
     Alert.alert(official ? '¿Terminar la emergencia para todo el barrio?' : '¿Salir del Modo Emergencia?', '', [
@@ -66,13 +70,11 @@ export function EmergencyHeader({ title, subtitle }: { title: string; subtitle?:
         <AppText bold variant="small" color={colors.white} style={{ flex: 1, letterSpacing: 0.5 }}>
           {status}
         </AppText>
-        {official && !isAdmin ? null : (
-          <Pressable accessibilityRole="button" accessibilityLabel="Salir del Modo Emergencia" onPress={exit} style={styles.exit}>
-            <AppText bold variant="small" color={colors.white}>
-              {official ? 'Terminar' : 'Salir'}
-            </AppText>
-          </Pressable>
-        )}
+        <Pressable accessibilityRole="button" accessibilityLabel={official && isAdmin ? 'Terminar la emergencia' : 'Salir del Modo Emergencia'} onPress={exit} style={styles.exit}>
+          <AppText bold variant="small" color={colors.white}>
+            {official && isAdmin ? 'Terminar' : 'Salir'}
+          </AppText>
+        </Pressable>
       </View>
       <AppText variant="hero" bold color={colors.white} accessibilityRole="header">
         {title}

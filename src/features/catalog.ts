@@ -11,6 +11,7 @@ export type CatalogItem = { key: string; label: string; icon: Icon; color: strin
 export const LISTING_CATEGORIES: CatalogItem[] = [
   { key: 'gasfiteria', label: 'Gasfitería', icon: 'construct-outline', color: colors.primary, bg: colors.primarySoft },
   { key: 'comida', label: 'Comida casera', icon: 'restaurant-outline', color: colors.accentInk, bg: colors.accentSoft },
+  { key: 'articulos', label: 'Artículos', icon: 'pricetag-outline', color: '#7A4B1E', bg: '#F3E6D6' },
   { key: 'electricidad', label: 'Electricidad', icon: 'flash-outline', color: '#8A5A12', bg: '#FBEFD9' },
   { key: 'cerrajeria', label: 'Cerrajería', icon: 'key-outline', color: '#3D3A35', bg: '#EFEAE0' },
   { key: 'carpinteria', label: 'Carpintería', icon: 'hammer-outline', color: '#7A4B1E', bg: '#F3E6D6' },
@@ -83,11 +84,27 @@ export function firstName(name: string | null | undefined): string {
   return name.replace(/^(Prof\.)\s+/i, '').split(/\s+/).slice(0, name.startsWith('Don') ? 2 : 1).join(' ');
 }
 
-/** "hace 20 min", "hace 1 h", "hace 2 días". */
+/**
+ * Fecha del servidor o local → milisegundos. Postgres puede devolver "2026-11-10 23:49:47.645123+00"
+ * (espacio, microsegundos, zona sin minutos) y Hermes no siempre lo entiende: lo normalizamos a ISO.
+ */
+export function parseTimestamp(iso: string | null | undefined): number {
+  if (!iso) return NaN;
+  const fixed = iso
+    .trim()
+    .replace(' ', 'T')
+    .replace(/(\.\d{3})\d+/, '$1')
+    .replace(/([+-]\d{2})$/, '$1:00');
+  const t = Date.parse(fixed);
+  return Number.isNaN(t) ? Date.parse(iso) : t;
+}
+
+/** "hace 20 min", "hace 1 h", "hace 2 días". Nunca "NaN" ni fechas del futuro. */
 export function timeAgo(iso: string | null | undefined): string {
-  if (!iso) return '';
-  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return `hace ${Math.max(1, Math.round(s))} s`;
+  const at = parseTimestamp(iso);
+  if (Number.isNaN(at)) return '';
+  const s = Math.max(0, (Date.now() - at) / 1000);
+  if (s < 60) return 'hace un momento';
   const m = s / 60;
   if (m < 60) return `hace ${Math.round(m)} min`;
   const h = m / 60;

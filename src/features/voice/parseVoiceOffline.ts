@@ -31,6 +31,7 @@ const LISTING_CATS: [string, string[]][] = [
   ['mascotas', ['perro', 'mascota', 'gato', 'pasear', 'paseo']],
   ['salud', ['enfermer', 'inyecc', 'salud', 'presion', 'medic']],
   ['transporte', ['taxi', 'mudanza', 'flete', 'camioneta', 'movilidad']],
+  ['articulos', ['bicicleta', 'ropa', 'zapatill', 'celular', 'televisor', 'refri', 'juguete', 'libro', 'usad', 'segunda mano', 'cocina a gas', 'licuadora', 'mochila']],
 ];
 
 const FAVOR_CATS: [string, string[]][] = [
@@ -143,10 +144,12 @@ export function parseVoiceOffline(text: string): ParsedPost {
 
   // Servicios y productos (Módulo 1)
   const isProduct = has(t, ['vendo', 'venta', 'preparo', 'hago']) && match(t, LISTING_CATS) === 'comida';
-  const category = match(t, LISTING_CATS) ?? 'otros';
+  const kind = isProduct || has(t, ['vendo', 'venta', 'remato', 'remate']) ? 'producto' : 'servicio';
+  // "Vendo mi bicicleta" no es un servicio: los productos sin categoría clara van a Artículos
+  const category = match(t, LISTING_CATS) ?? (kind === 'producto' ? 'articulos' : 'otros');
   return {
     module: 'listing',
-    kind: isProduct || has(t, ['vendo', 'venta']) ? 'producto' : 'servicio',
+    kind,
     category,
     title: makeTitle(text.replace(/^(vendo|ofrezco|hago|preparo)\s+/i, (m) => m)),
     description,

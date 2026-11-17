@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { QuadraMap, type MapPin } from '@/components/QuadraMap';
 import { BigButton } from '@/components/BigButton';
-import { daysText, helpLabel, offersLabel } from '@/components/FavorCard';
+import { daysText, favorCopy, helpLabel, offersLabel } from '@/components/FavorCard';
 import { distanceText } from '@/components/ListingCard';
 import { Avatar, BackHeader, Badge, Card, EmptyState } from '@/components/ui';
 import { acceptOffer, resolveFavor, useFavor, useMobilityMatches, withdrawOffer, type OfferWithMeta } from '@/data/repositories/favors';
@@ -110,6 +110,7 @@ export default function FavorDetailScreen() {
 
 /** Vista de quien pidió: ofertas ordenadas por distancia, mini mapa numerado, elegir. */
 function MyOffers({ favor, offers }: { favor: Favor; offers: OfferWithMeta[] }) {
+  const copy = favorCopy(favor.type);
   const accepted = offers.find((o) => o.id === favor.accepted_response_id) ?? offers.find((o) => o.status === 'aceptado' || o.status === 'completado');
   // Privacidad: antes de aceptar, ubicación redondeada a ~50 m
   const shown = offers.map((o) => (o.id === accepted?.id ? o : { ...o, ...roundLocation(o, 250) }));
@@ -138,14 +139,22 @@ function MyOffers({ favor, offers }: { favor: Favor; offers: OfferWithMeta[] }) 
   };
 
   const resolve = () =>
-    Alert.alert('¿Ya te ayudaron?', `${firstName(accepted?.responder_name)} recibirá 5 Quadri Points por su ayuda.`, [
+    Alert.alert(
+      copy.isHelp ? '¿Ya te ayudaron?' : `¿${copy.resolveLabel}?`,
+      copy.isHelp ? `${firstName(accepted?.responder_name)} recibirá 5 Quadri Points por su ayuda.` : 'Marcamos tu publicación como resuelta.',
+      [
       { text: 'Todavía no', style: 'cancel' },
       {
-        text: 'Sí, ya me ayudaron',
+        text: 'Sí',
         onPress: async () => {
           await resolveFavor(favor);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-          Alert.alert('¡Qué bueno!', `Gracias por usar la Cadena de Favores. ${firstName(accepted?.responder_name)} suma +5 Quadri Points.`);
+          Alert.alert(
+            '¡Qué bueno!',
+            copy.isHelp
+              ? `Gracias por usar la Cadena de Favores. ${firstName(accepted?.responder_name)} suma +5 Quadri Points.`
+              : 'Gracias por usar la Cadena de Favores.',
+          );
         },
       },
     ]);
@@ -164,7 +173,7 @@ function MyOffers({ favor, offers }: { favor: Favor; offers: OfferWithMeta[] }) 
       {accepted ? (
         <Card borderColor={colors.ok}>
           <AppText bold variant="large">
-            Te ayuda {accepted.responder_name}
+            {copy.accepted} {accepted.responder_name}
           </AppText>
           <AppText color={colors.textSecondary}>
             {formatMeters(accepted.distance_m)} · {walkingMinutes(accepted.distance_m)} min a pie
@@ -180,9 +189,9 @@ function MyOffers({ favor, offers }: { favor: Favor; offers: OfferWithMeta[] }) 
             }}
           />
           {favor.status !== 'resuelto' ? (
-            <BigButton label="Ya me ayudaron" icon="checkmark-done" tone="ok" onPress={resolve} />
+            <BigButton label={copy.resolveLabel} icon="checkmark-done" tone="ok" onPress={resolve} />
           ) : (
-            <Badge label="Resuelto · +5 Quadri Points para quien ayudó" color={colors.ok} bg={colors.primarySoft} icon="checkmark-done" />
+            <Badge label={copy.isHelp ? 'Resuelto · +5 Quadri Points para quien ayudó' : 'Resuelto'} color={colors.ok} bg={colors.primarySoft} icon="checkmark-done" />
           )}
         </Card>
       ) : null}
@@ -240,9 +249,10 @@ function OfferCard({ n, offer, closest, accepted, canChoose, onChoose }: { n: nu
 
 /** Vista de un vecino que no es el autor: su oferta o el botón "Yo te ayudo". */
 function HelperView({ favor, mine, authorName }: { favor: Favor; mine: OfferWithMeta | import('@/data/types').FavorResponse | null; authorName: string | null }) {
+  const copy = favorCopy(favor.type);
   if (mine && mine.status !== 'retirado') {
     const status = {
-      propuesto: `Ofreciste tu ayuda. ${firstName(authorName)} elegirá pronto.`,
+      propuesto: copy.pending(firstName(authorName)),
       aceptado: `¡${firstName(authorName)} te eligió! Coordinen por WhatsApp.`,
       agradecido: mine.thanks_message ?? '¡Gracias, vecino! Esta vez ya me ayudaron, pero tu intención cuenta.',
       completado: '¡Ayudaste! Sumaste 5 Quadri Points.',
@@ -251,18 +261,18 @@ function HelperView({ favor, mine, authorName }: { favor: Favor; mine: OfferWith
     return (
       <Card borderColor={mine.status === 'aceptado' ? colors.ok : colors.primary}>
         <AppText bold variant="large">
-          Tu oferta
+          {copy.isHelp ? 'Tu oferta' : 'Tu pedido'}
         </AppText>
         <AppText>{status}</AppText>
         {mine.message ? <AppText color={colors.textSecondary}>“{mine.message}”</AppText> : null}
         {mine.status === 'agradecido' ? <Badge label="+1 Quadri Point por ofrecer tu ayuda" color={colors.accentInk} bg={colors.accentSoft} /> : null}
         {mine.status === 'propuesto' ? (
           <BigButton
-            label="Retirar mi oferta"
+            label={copy.isHelp ? 'Retirar mi oferta' : 'Cancelar mi pedido'}
             icon="close"
             tone="outline"
             onPress={() =>
-              Alert.alert('¿Retirar tu oferta?', '', [
+              Alert.alert(copy.isHelp ? '¿Retirar tu oferta?' : '¿Cancelar tu pedido?', '', [
                 { text: 'No', style: 'cancel' },
                 { text: 'Retirar', style: 'destructive', onPress: () => void withdrawOffer(mine.id) },
               ])

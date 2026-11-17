@@ -39,3 +39,19 @@ export async function loadEmergencyDemo(): Promise<void> {
   }
   bumpTables('emergency_reports');
 }
+
+/**
+ * Modo demo: los favores de ejemplo (Don Pedro y sus muletas, el taladro…) se muestran como recién
+ * publicados ("hace 20 min") y no con la fecha en que se instaló la app o se cargó el servidor
+ * ("hace 10 días"), que en la presentación parecía un error de fechas.
+ */
+export async function refreshDemoTimes(): Promise<void> {
+  const db = await getDb();
+  for (const f of seed.favors) {
+    await db.runAsync('UPDATE favors SET created_at = ? WHERE id = ?', [minutesAgoIso(f.minutesAgo), f.id]);
+  }
+  for (const r of seed.favorResponses) {
+    await db.runAsync('UPDATE favor_responses SET created_at = ? WHERE id = ?', [minutesAgoIso(r.minutesAgo), r.id]);
+  }
+  bumpTables('favors', 'favor_responses');
+}

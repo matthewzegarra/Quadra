@@ -170,7 +170,14 @@ export default function PerfilScreen() {
                 onPress={async () => {
                   const ok = await claimZoneAdmin(pin);
                   setPin('');
-                  Alert.alert(ok ? 'Listo' : 'Código incorrecto', ok ? 'Ahora puedes activar el Modo Emergencia.' : 'Pide el código a tu junta vecinal.');
+                  Alert.alert(
+                    ok ? 'Listo' : 'No se pudo validar',
+                    ok
+                      ? 'Ahora puedes activar el Modo Emergencia.'
+                      : s.authUserId
+                        ? 'Código incorrecto o demasiados intentos. Pide el código a tu junta vecinal o espera una hora.'
+                        : 'Entra con tu cuenta y con internet para validar el código de la junta.',
+                  );
                 }}
               />
             </Card>

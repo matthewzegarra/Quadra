@@ -37,6 +37,106 @@ export function helpLabel(type: FavorType): string {
   }
 }
 
+/**
+ * Textos del flujo de respuesta según el tipo de favor. Antes todo decía "Yo te ayudo / Enviar oferta",
+ * y no tiene sentido "ofrecer ayuda" a quien PRESTA una bicicleta: ahí el vecino la pide prestada.
+ */
+export type FavorCopy = {
+  screenTitle: string;
+  whereTitle: string;
+  pickSubtitle: string;
+  defaultMessage: string;
+  send: string;
+  sentBadge: string;
+  pending: (author: string) => string;
+  accepted: string;
+  resolveLabel: string;
+  isHelp: boolean;
+};
+
+export function favorCopy(type: FavorType): FavorCopy {
+  switch (type) {
+    case 'pido':
+      return {
+        screenTitle: 'Yo te ayudo',
+        whereTitle: '¿Desde dónde ayudas?',
+        pickSubtitle: 'Si lo que prestas está en otro lugar',
+        defaultMessage: 'Lo tengo, pasa cuando quieras',
+        send: 'Enviar oferta',
+        sentBadge: 'Ya ofreciste tu ayuda',
+        pending: (a) => `Ofreciste tu ayuda. ${a} elegirá pronto.`,
+        accepted: 'Te ayuda',
+        resolveLabel: 'Ya me ayudaron',
+        isHelp: true,
+      };
+    case 'presto':
+      return {
+        screenTitle: 'Pedir prestado',
+        whereTitle: '¿Dónde estás tú?',
+        pickSubtitle: 'Si prefieres recogerlo desde otro punto',
+        defaultMessage: '¡Hola! Me interesa, ¿cuándo puedo pasar a recogerlo?',
+        send: 'Pedir prestado',
+        sentBadge: 'Ya lo pediste prestado',
+        pending: (a) => `Le pediste prestado a ${a}. Te avisamos cuando responda.`,
+        accepted: 'Se lo prestas a',
+        resolveLabel: 'Ya me lo devolvieron',
+        isHelp: false,
+      };
+    case 'dono':
+      return {
+        screenTitle: 'Lo quiero',
+        whereTitle: '¿Dónde estás tú?',
+        pickSubtitle: 'Si prefieres recogerlo desde otro punto',
+        defaultMessage: '¡Hola! Me serviría mucho, ¿cuándo puedo pasar?',
+        send: 'Pedirlo',
+        sentBadge: 'Ya lo pediste',
+        pending: (a) => `Se lo pediste a ${a}. Te avisamos cuando responda.`,
+        accepted: 'Se lo das a',
+        resolveLabel: 'Ya se lo entregué',
+        isHelp: false,
+      };
+    case 'intercambio':
+      return {
+        screenTitle: 'Hagamos el cambio',
+        whereTitle: '¿Dónde estás tú?',
+        pickSubtitle: 'Si prefieres encontrarse en otro punto',
+        defaultMessage: '¡Hola! Me interesa el intercambio, ¿coordinamos?',
+        send: 'Proponer el cambio',
+        sentBadge: 'Ya propusiste el cambio',
+        pending: (a) => `Le propusiste el cambio a ${a}. Te avisamos cuando responda.`,
+        accepted: 'Intercambias con',
+        resolveLabel: 'Ya hicimos el cambio',
+        isHelp: false,
+      };
+    case 'movilidad':
+      return {
+        screenTitle: 'Me sumo',
+        whereTitle: '¿Desde dónde sales?',
+        pickSubtitle: 'Si sales desde otro punto',
+        defaultMessage: '¡Hola! Vamos al mismo sitio, ¿coordinamos?',
+        send: 'Sumarme',
+        sentBadge: 'Ya te sumaste',
+        pending: (a) => `Le escribiste a ${a} para ir juntos. Te avisamos cuando responda.`,
+        accepted: 'Coordinas con',
+        resolveLabel: 'Ya coordinamos',
+        isHelp: false,
+      };
+    default:
+      return {
+        screenTitle: 'Me interesa',
+        whereTitle: '¿Dónde estás tú?',
+        pickSubtitle: 'Si prefieres encontrarse en otro punto',
+        defaultMessage: '¡Hola! Me vendría muy bien tu ayuda',
+        send: 'Pedir su ayuda',
+        sentBadge: 'Ya le escribiste',
+        pending: (a) => `Le escribiste a ${a}. Te avisamos cuando responda.`,
+        accepted: 'Ayudas a',
+        resolveLabel: 'Ya está hecho',
+        isHelp: false,
+      };
+  }
+}
+
 export function offersLabel(type: FavorType, n: number): string {
   if (type === 'pido') return `${n} ${n === 1 ? 'vecino ofrece' : 'vecinos ofrecen'} ayuda`;
   return `${n} ${n === 1 ? 'vecino interesado' : 'vecinos interesados'}`;
@@ -92,7 +192,7 @@ export function FavorCard({ item, isMine, match }: { item: FavorWithMeta; isMine
       {isMine ? (
         <BigButton label={item.offers > 0 ? 'Ver quién te ayuda' : 'Ver mi publicación'} icon="people-outline" tone="outline" onPress={open} />
       ) : item.my_response_status && item.my_response_status !== 'retirado' ? (
-        <Badge label="Ya ofreciste tu ayuda" color={colors.primary} bg={colors.primarySoft} icon="checkmark" />
+        <Badge label={favorCopy(item.type).sentBadge} color={colors.primary} bg={colors.primarySoft} icon="checkmark" />
       ) : item.status === 'abierto' ? (
         <BigButton label={helpLabel(item.type)} icon="heart-outline" onPress={() => router.push(`/favor/ofrecer/${item.id}`)} />
       ) : null}

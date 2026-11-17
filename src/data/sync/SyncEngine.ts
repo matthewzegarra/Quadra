@@ -134,6 +134,10 @@ async function mergePrivate(table: string, incoming: Row): Promise<{ row: Row; i
     }
     if (table === 'listings' && !incoming.whatsapp && existing?.whatsapp) row.whatsapp = existing.whatsapp;
   }
+  // Favores de ejemplo: conservamos la hora "reciente" del demo (ver refreshDemoTimes)
+  if ((table === 'favors' || table === 'favor_responses') && existing && /^[de]0000000-/.test(String(row.id))) {
+    row.created_at = existing.created_at;
+  }
   return { row, isNew: !existing };
 }
 

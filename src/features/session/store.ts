@@ -20,6 +20,7 @@ const K = {
   demoMode: 'ayni.demoMode',
   meshEnabled: 'ayni.meshEnabled',
   localEmergency: 'ayni.localEmergency',
+  dismissedEmergency: 'ayni.dismissedEmergency',
 } as const;
 
 const readBool = (key: string, def = false) => {
@@ -53,6 +54,8 @@ type SessionState = {
   meshEnabled: boolean;
   /** Modo emergencia abierto localmente (botón SOS / pestaña Emergencia). */
   localEmergency: boolean;
+  /** Emergencia oficial (clave = emergency_started_at) que este vecino ocultó para ver la app normal. */
+  dismissedEmergency: string | null;
   setAuthUserId: (id: string | null) => void;
   setIdentity: (name: string, whatsapp: string | null) => void;
   setAccount: (input: { firstName: string; lastName: string; email: string; dniLast4: string | null; whatsapp: string | null }) => void;
@@ -64,6 +67,7 @@ type SessionState = {
   setDemoMode: (v: boolean) => void;
   setMeshEnabled: (v: boolean) => void;
   setLocalEmergency: (v: boolean) => void;
+  setDismissedEmergency: (key: string | null) => void;
 };
 
 export const useSession = create<SessionState>((set) => ({
@@ -81,6 +85,7 @@ export const useSession = create<SessionState>((set) => ({
   demoMode: readBool(K.demoMode, true), // hackatón: activo por defecto
   meshEnabled: readBool(K.meshEnabled),
   localEmergency: readBool(K.localEmergency),
+  dismissedEmergency: Storage.getItemSync(K.dismissedEmergency),
   setAuthUserId: (authUserId) => {
     if (authUserId) Storage.setItemSync(K.authUserId, authUserId);
     else Storage.removeItemSync(K.authUserId);
@@ -139,6 +144,11 @@ export const useSession = create<SessionState>((set) => ({
   setLocalEmergency: (v) => {
     writeBool(K.localEmergency, v);
     set({ localEmergency: v });
+  },
+  setDismissedEmergency: (key) => {
+    if (key) Storage.setItemSync(K.dismissedEmergency, key);
+    else Storage.removeItemSync(K.dismissedEmergency);
+    set({ dismissedEmergency: key });
   },
 }));
 

@@ -6,6 +6,7 @@ import { useEmergencyMode } from '@/data/repositories/emergency';
 import { ensureMyProfile, fixLegacyDemoHome, getMyProfile, remapIdentity, updateMyProfile } from '@/data/repositories/profiles';
 import { onIncomingRow, setSyncInterval, startSyncEngine, syncNow } from '@/data/sync/SyncEngine';
 import type { Favor } from '@/data/types';
+import { reloadZone, watchZone } from '@/data/zoneStore';
 import { EMERGENCY_TYPES, firstName } from '@/features/catalog';
 import { ensureOfflinePack } from '@/features/map/offlineMap';
 import { currentUserId, useSession } from '@/features/session/store';
@@ -14,7 +15,7 @@ import { refreshLocation, useLocationStore } from '@/lib/location';
 import { initNotifications, notify, zoneEmergencyKey } from '@/lib/notify';
 import { restoreSession } from '@/lib/supabase';
 import { startMesh, stopMesh } from '@/mesh/MeshRouter';
-import { loadSeedIfEmpty } from '@/seed/loadSeed';
+import { loadSeedIfEmpty, refreshDemoTimes } from '@/seed/loadSeed';
 
 let authInFlight: Promise<void> | null = null;
 
@@ -31,7 +32,11 @@ function connectBackend(): Promise<void> {
   authInFlight = (async () => {
     const s = useSession.getState();
     const authId = await restoreSession();
-    if (!authId) return;
+    if (!authId) {
+      // Sesión anónima vieja (o cerrada): este celular queda "sin cuenta" y no sincroniza.
+      if (s.authUserId && !s.email) useSession.getState().setAuthUserId(null);
+      return;
+    }
     if (s.authUserId !== authId) {
       await remapIdentity(s.localUserId, authId);
       useSession.getState().setAuthUserId(authId);
@@ -51,6 +56,10 @@ function connectBackend(): Promise<void> {
 export async function bootstrap(): Promise<void> {
   await getDb();
   await loadSeedIfEmpty();
+  // La zona (¿hay emergencia oficial?) queda en memoria ANTES del primer render: evita el bucle de redirecciones.
+  watchZone();
+  await reloadZone();
+  if (useSession.getState().demoMode) await refreshDemoTimes().catch(() => {});
   await refreshPendingCount();
   void refreshLocation().then(async () => {
     if (!useSession.getState().onboardingDone) return;
@@ -98,11 +107,18 @@ export function useAppEffects() {
     setSyncInterval(emergency ? 10_000 : 30_000);
   }, [emergency]);
 
-  // Mesh: se activa solo en emergencia o sin internet; también con el switch manual
+  // Mesh: se activa en emergencia o con el switch manual (pidiendo permisos si faltan). Sin internet
+  // también, pero solo si los permisos ya estaban dados: no aparecen diálogos ni se prende Bluetooth
+  // por sorpresa al abrir la app en modo avión. Se espera 1.5 s para no prender y apagar la radio
+  // en cada parpadeo de la señal.
   useEffect(() => {
-    const shouldRun = emergency || !isOnline || meshEnabled;
-    if (shouldRun) void startMesh();
-    else void stopMesh();
+    const interactive = emergency || meshEnabled;
+    const shouldRun = interactive || !isOnline;
+    const t = setTimeout(() => {
+      if (shouldRun) void startMesh({ askPermissions: interactive });
+      else void stopMesh();
+    }, 1500);
+    return () => clearTimeout(t);
   }, [emergency, isOnline, meshEnabled]);
 
   // Notificaciones locales a partir de lo que llega del servidor (pull o Realtime)
@@ -118,7 +134,8 @@ export function useAppEffects() {
           const db = await getDb();
           const favor = await db.getFirstAsync<Favor>('SELECT * FROM favors WHERE id = ?', [row.favor_id as string]);
           if (favor?.author_id !== me) return;
-          notify(`${row.responder_name ?? 'Un vecino'} te ofrece ayuda`, `"${row.message ?? 'Yo te ayudo'}" · ${favor.title}`, {
+          const verb = favor.type === 'pido' ? 'te ofrece ayuda' : 'está interesado en tu publicación';
+          notify(`${row.responder_name ?? 'Un vecino'} ${verb}`, `"${row.message ?? 'Me interesa'}" · ${favor.title}`, {
             url: `/favor/${favor.id}`,
             channel: 'favores',
             dedupeKey: `offer.${row.id}`,

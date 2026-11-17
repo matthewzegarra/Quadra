@@ -32,15 +32,26 @@ const decodeName = (endpoint: string) => {
   return { short: id ?? '', name: rest.join('|') || endpoint };
 };
 
-export async function requestMeshPermissions(): Promise<boolean> {
-  if (Platform.OS !== 'android') return true;
+function meshPermissions(): string[] {
   const P = PermissionsAndroid.PERMISSIONS;
   const api = typeof Platform.Version === 'number' ? Platform.Version : parseInt(String(Platform.Version), 10);
   const perms: string[] = [P.ACCESS_FINE_LOCATION, P.ACCESS_COARSE_LOCATION];
   if (api >= 31) perms.push(P.BLUETOOTH_SCAN, P.BLUETOOTH_ADVERTISE, P.BLUETOOTH_CONNECT);
   if (api >= 33) perms.push(P.NEARBY_WIFI_DEVICES);
-  const res = await PermissionsAndroid.requestMultiple(perms.filter(Boolean) as never);
+  return perms.filter(Boolean);
+}
+
+export async function requestMeshPermissions(): Promise<boolean> {
+  if (Platform.OS !== 'android') return true;
+  const res = await PermissionsAndroid.requestMultiple(meshPermissions() as never);
   return Object.values(res).every((r) => r === PermissionsAndroid.RESULTS.GRANTED);
+}
+
+/** Sin diálogos: ¿ya dio el vecino los permisos de Bluetooth y dispositivos cercanos? */
+export async function hasMeshPermissions(): Promise<boolean> {
+  if (Platform.OS !== 'android') return true;
+  const checks = await Promise.all(meshPermissions().map((p) => PermissionsAndroid.check(p as never).catch(() => false)));
+  return checks.every(Boolean);
 }
 
 export class NearbyTransport implements MeshTransport {
@@ -52,11 +63,14 @@ export class NearbyTransport implements MeshTransport {
   private peerCbs = new Set<(peers: Peer[]) => void>();
   private retryTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private running = false;
+  private stopped = false;
 
-  async start(selfId: string, name: string): Promise<void> {
+  async start(selfId: string, name: string, opts: { askPermissions?: boolean } = {}): Promise<void> {
     if (this.running) return;
     if (!(await isPlayServicesAvailable())) throw new Error('Este celular no tiene Google Play Services');
-    if (!(await requestMeshPermissions())) throw new Error('Faltan permisos de Bluetooth y dispositivos cercanos');
+    const granted = opts.askPermissions === false ? await hasMeshPermissions() : await requestMeshPermissions();
+    if (!granted) throw new Error('Faltan permisos de Bluetooth y dispositivos cercanos');
+    if (this.stopped) throw new Error('Red vecinal detenida');
     this.running = true;
     this.selfShort = selfId.slice(0, 8);
     const endpoint = encodeName(selfId, name);
@@ -133,6 +147,7 @@ export class NearbyTransport implements MeshTransport {
   }
 
   async stop(): Promise<void> {
+    this.stopped = true;
     if (!this.running) return;
     this.running = false;
     this.subs.forEach((u) => u());

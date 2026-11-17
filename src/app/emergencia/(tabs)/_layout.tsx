@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { useEmergencyMode } from '@/data/repositories/emergency';
+import { useZoneStore } from '@/data/zoneStore';
 import { colors, elevation, MIN_TOUCH, radius, spacing } from '@/theme/tokens';
 
 const TABS: { name: string; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
@@ -47,6 +48,8 @@ function EmergencyTabBar({ state, navigateToTab }: BottomTabBarProps) {
 // La app "evoluciona": en emergencia la navegación cambia a estas 3 pestañas.
 export default function EmergencyTabsLayout() {
   const { active } = useEmergencyMode();
+  const loaded = useZoneStore((s) => s.loaded);
+  if (!loaded) return null; // nunca redirigir con la zona a medio cargar (causa del bucle)
   if (!active) return <Redirect href="/" />;
   return (
     <Tabs tabBar={(p) => <EmergencyTabBar {...p} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.bgEmergency } }}>

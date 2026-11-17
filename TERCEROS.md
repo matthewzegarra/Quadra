@@ -64,6 +64,19 @@ Versiones exactas instaladas (ver `package-lock.json`).
 | qrcode-generator (Kazuhiko Arase), copiado en `landing/qrcode.js` | 1.4.4 | MIT | Código QR de la landing, sin cargarlo desde un CDN |
 | Lucide Icons (20 íconos SVG copiados en línea en `landing/index.html`, elegidos en allsvgicons.com) | lucide.dev (actual) | ISC | Íconos de la landing (descarga, ubicación, Bluetooth, micrófono, etc.), sin CDN |
 
+## Video de lanzamiento (carpeta `video/`, no forma parte de la app)
+
+| Componente | Versión | Licencia | Uso |
+|---|---|---|---|
+| remotion, @remotion/cli, @remotion/media, @remotion/transitions, @remotion/captions, @remotion/google-fonts | 4.0.541 | Remotion License (gratis para personas y equipos de hasta 3; organizaciones más grandes necesitan licencia de empresa) | Video animado hecho con React: escenas, transiciones, audio y subtítulos |
+| Remotion Agent Skills (`remotion-dev/skills`: best-practices, markup, captions, render, studio, create) | 4.0.541 | Licencia del repositorio de Remotion | Guías de buenas prácticas usadas para construir el video (en `video/.claude/skills/`) |
+| react-icons (set Ionicons 5) | 5.7.0 | MIT (Ionicons: MIT) | Los mismos íconos de la app dentro de las pantallas recreadas |
+| Poppins (Google Fonts) | — | OFL-1.1 | Tipografía de titulares del video |
+| edge-tts (Python) | 7.3.1 | LGPL-3.0 | Generar la narración con la voz neuronal `es-PE-CamilaNeural` |
+| Voz neuronal de Microsoft Edge "Leer en voz alta" (`es-PE-CamilaNeural`) | — | Servicio gratuito de Microsoft (sin API key) | Narración en español peruano |
+| numpy (Python) | 2.5.4 | BSD-3-Clause | Sintetizar la música original del video (sin samples de terceros) |
+| Efectos de sonido de remotion.media (clic, whoosh, ding, switch) | — | Provistos por Remotion para usar en videos | Clics y transiciones |
+
 ## Plantilla de inicio
 
 El proyecto se generó con `create-expo-app` (plantilla `blank-typescript`, © 650 Industries, MIT). Logo e íconos de Quadra: diseño propio del equipo PEAK (`assets/brand/`).

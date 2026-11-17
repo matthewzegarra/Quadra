@@ -42,6 +42,10 @@
     [hidden] { display: none !important; }
     :focus-visible { outline: 3px solid var(--lime); outline-offset: 3px; }
   </style>
+  <script>
+    // Enlace de "¿Olvidaste tu contraseña?" que cayó aquí: lo llevamos a la página correcta.
+    if (/type=recovery/.test(location.hash)) location.replace('/restablecer' + location.hash);
+  </script>
 </head>
 <body>
   <main>

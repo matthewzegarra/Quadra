@@ -4,6 +4,10 @@ import { ensureMyProfile } from '@/data/repositories/profiles';
 import { bumpTables } from '@/data/store';
 import type { EmergencyReport, Profile, ReportKind, ReportStatus, Zone } from '@/data/types';
 import { useLocalQuery } from '@/data/useLocalQuery';
+import { useZoneStore } from '@/data/zoneStore';
+import { computeEmergencyMode, emergencyKey } from '@/data/emergencyMode';
+
+export { computeEmergencyMode, emergencyKey };
 import { REPORT_KINDS } from '@/features/catalog';
 import { currentUserId, currentUserName, useSession } from '@/features/session/store';
 import { distanceMeters, type LatLng } from '@/lib/geo';
@@ -16,22 +20,23 @@ import { DEMO_ZONE_ID } from '@/lib/zone';
 import { publishControl, publishReport } from '@/mesh/MeshRouter';
 import { loadEmergencyDemo } from '@/seed/loadSeed';
 
+/** Zona del barrio, leída de memoria (síncrona): nunca `undefined` a mitad de una navegación. */
 export function useZone() {
-  return useLocalQuery<Zone | null>(['zones'], (db) => db.getFirstAsync<Zone>('SELECT * FROM zones WHERE id = ?', [DEMO_ZONE_ID]));
+  const zone = useZoneStore((s) => s.zone);
+  const loaded = useZoneStore((s) => s.loaded);
+  return { data: zone, loading: !loaded };
 }
 
-/** Estado del Modo Emergencia: oficial (junta vecinal, llega por Realtime o mesh) o abierto localmente (SOS). */
+/**
+ * Estado del Modo Emergencia: oficial (junta vecinal, llega por Realtime o mesh) o abierto localmente (SOS).
+ * Un vecino puede pasar a "Ver Quadra normal" durante una emergencia oficial (`dismissed`) y volver
+ * al tablero desde la barra roja; así la app nunca queda atrapada en un solo modo.
+ */
 export function useEmergencyMode() {
   const { data: zone } = useZone();
   const local = useSession((s) => s.localEmergency);
-  const official = zone?.emergency_active === 1;
-  return {
-    active: official || local,
-    official,
-    type: official ? zone?.emergency_type ?? 'otro' : 'otro',
-    startedAt: official ? zone?.emergency_started_at ?? null : null,
-    zone,
-  };
+  const dismissedKey = useSession((s) => s.dismissedEmergency);
+  return { ...computeEmergencyMode(zone, local, dismissedKey), zone };
 }
 
 export type ReportWithMeta = EmergencyReport & { distance_m: number; mesh_path: string | null };
@@ -111,12 +116,19 @@ export async function setReportStatus(id: string, status: ReportStatus) {
 
 /** Abre el Modo Emergencia en este celular (botón SOS o pestaña Emergencia). */
 export async function openLocalEmergency() {
+  useSession.getState().setDismissedEmergency(null);
   useSession.getState().setLocalEmergency(true);
   if (useSession.getState().demoMode) await loadEmergencyDemo();
 }
 
 export async function closeLocalEmergency() {
   useSession.getState().setLocalEmergency(false);
+}
+
+/** Durante una emergencia oficial, este vecino vuelve a la app normal (puede regresar desde la barra roja). */
+export function viewNormalApp(zone: Pick<Zone, 'emergency_started_at'> | null | undefined) {
+  useSession.getState().setLocalEmergency(false);
+  useSession.getState().setDismissedEmergency(emergencyKey(zone));
 }
 
 /** Junta vecinal: activa el modo para toda la zona (Realtime + mesh). */
@@ -126,6 +138,7 @@ export async function activateZoneEmergency(type: string) {
   if (!zone) return;
   const startedAt = new Date().toISOString();
   markNotified(zoneEmergencyKey(startedAt)); // quien activa no se autonotifica
+  useSession.getState().setDismissedEmergency(null);
   await patchRow('zones', zone.id, { emergency_active: 1, emergency_type: type, emergency_started_at: startedAt });
   await publishControl(true, type);
   if (useSession.getState().demoMode) await loadEmergencyDemo();
@@ -139,16 +152,17 @@ export async function deactivateZoneEmergency() {
   useSession.getState().setLocalEmergency(false);
 }
 
-/** Reclama el rol de junta vecinal con el PIN de la zona. Sin internet se valida localmente (demo). */
+/**
+ * Reclama el rol de junta vecinal con el PIN de la zona. Lo valida SOLO el servidor (máx. 5 intentos
+ * por hora). Antes el PIN estaba escrito en la app como respaldo sin red: cualquiera que abriera el
+ * APK podía leerlo y volverse junta. Hace falta cuenta e internet una sola vez.
+ */
 export async function claimZoneAdmin(pin: string): Promise<boolean> {
   const me = await ensureMyProfile();
   let ok = false;
   if (supabase && useSession.getState().authUserId) {
-    const { data, error } = await supabase.rpc('claim_zone_admin', { p_zone: DEMO_ZONE_ID, p_code: pin });
+    const { data, error } = await supabase.rpc('claim_zone_admin', { p_zone: DEMO_ZONE_ID, p_code: pin.trim() });
     ok = !error && data === true;
-    if (error && !error.code) ok = pin === '2026'; // sin red
-  } else {
-    ok = pin === '2026';
   }
   if (ok) {
     await putLocal('profiles', { ...me, is_zone_admin: 1 });

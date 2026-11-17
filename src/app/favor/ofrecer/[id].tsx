@@ -2,15 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { QuadraMap } from '@/components/QuadraMap';
 import { BigButton } from '@/components/BigButton';
+import { favorCopy } from '@/components/FavorCard';
 import { Avatar, BackHeader, Field } from '@/components/ui';
 import { MicButton } from '@/components/VoiceButton';
 import { offerHelp, useFavor } from '@/data/repositories/favors';
 import { firstName, initials } from '@/features/catalog';
+import { useSession } from '@/features/session/store';
 import { distanceMeters, formatDistance, type LatLng } from '@/lib/geo';
 import { locationText, refreshLocation, reverseLabel, useLocationStore } from '@/lib/location';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -23,7 +25,7 @@ export default function OfrecerAyudaScreen() {
   const [source, setSource] = useState<'gps' | 'mapa'>('gps');
   const [picked, setPicked] = useState<LatLng | null>(null);
   const [pickedLabel, setPickedLabel] = useState<string | null>(null);
-  const [message, setMessage] = useState('Lo tengo, pasa cuando quieras');
+  const [message, setMessage] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
@@ -39,17 +41,26 @@ export default function OfrecerAyudaScreen() {
   if (!data) return <SafeAreaView style={styles.safe} />;
   const { favor, author } = data;
   const name = firstName(author?.display_name);
+  const copy = favorCopy(favor.type);
+  const text = message ?? copy.defaultMessage;
   const point = source === 'mapa' && picked ? picked : loc.coords;
   const d = distanceMeters(point, favor);
 
   const send = async () => {
+    if (!useSession.getState().authUserId) {
+      Alert.alert('Crea tu cuenta para responder', 'Así el vecino sabe quién le escribe y puede elegirte con confianza.', [
+        { text: 'Ahora no', style: 'cancel' },
+        { text: 'Crear mi cuenta', onPress: () => router.push('/bienvenida') },
+      ]);
+      return;
+    }
     setSending(true);
     try {
       await offerHelp(favor, {
         location: point,
         source,
         label: source === 'mapa' ? pickedLabel : loc.label,
-        message,
+        message: text,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.replace(`/favor/${favor.id}`);
@@ -60,9 +71,9 @@ export default function OfrecerAyudaScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <BackHeader title="Yo te ayudo" />
+          <BackHeader title={copy.screenTitle} />
           <View style={styles.favor}>
             <Avatar name={author?.display_name} size={56} color={colors.accent} />
             <View style={{ flex: 1 }}>
@@ -78,7 +89,7 @@ export default function OfrecerAyudaScreen() {
           </View>
 
           <AppText bold variant="large" accessibilityRole="header">
-            ¿Desde dónde ayudas?
+            {copy.whereTitle}
           </AppText>
           <Option
             selected={source === 'gps'}
@@ -89,7 +100,7 @@ export default function OfrecerAyudaScreen() {
           <Option
             selected={source === 'mapa'}
             title="Elegir en el mapa"
-            subtitle={source === 'mapa' && pickedLabel ? pickedLabel : 'Si lo que prestas está en otro lugar'}
+            subtitle={source === 'mapa' && pickedLabel ? pickedLabel : copy.pickSubtitle}
             onPress={() => {
               setSource('mapa');
               if (!picked) setPicked(loc.coords);
@@ -123,7 +134,7 @@ export default function OfrecerAyudaScreen() {
 
           <View style={{ flexDirection: 'row', gap: spacing.md }}>
             <View style={{ flex: 1 }}>
-              <Field label="Tu mensaje" value={message} onChangeText={setMessage} />
+              <Field label="Tu mensaje" value={text} onChangeText={setMessage} />
             </View>
             <View style={{ justifyContent: 'flex-end' }}>
               <MicButton onText={setMessage} label="Dictar mensaje" />
@@ -131,11 +142,11 @@ export default function OfrecerAyudaScreen() {
           </View>
 
           <AppText variant="small" color={colors.textSecondary}>
-            {name} verá tu ubicación aproximada. Tu dirección exacta y tu WhatsApp se comparten solo si te elige.
+            {name} verá tu zona aproximada. Tu dirección exacta y tu WhatsApp se comparten solo si te elige.
           </AppText>
         </ScrollView>
         <View style={styles.footer}>
-          <BigButton label="Enviar oferta" icon="heart-outline" onPress={send} disabled={sending} />
+          <BigButton label={copy.send} icon={copy.isHelp ? 'heart-outline' : 'chatbubble-ellipses-outline'} onPress={send} disabled={sending} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

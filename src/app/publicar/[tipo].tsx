@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BigButton } from '@/components/BigButton';
@@ -14,6 +14,7 @@ import { createListing } from '@/data/repositories/listings';
 import type { FavorType, MobilityRole } from '@/data/types';
 import { FAVOR_CATEGORIES, findItem, firstName, LISTING_CATEGORIES } from '@/features/catalog';
 import type { PublishTipo } from '@/features/publish/publishTypes';
+import { normalizeTime } from '@/features/publish/time';
 import { useSession } from '@/features/session/store';
 import { parseVoice } from '@/features/voice/parseVoice';
 import type { ParsedPost } from '@/features/voice/parseVoiceOffline';
@@ -39,6 +40,8 @@ const DAYS = [
   ['sab', 'Sáb'],
   ['dom', 'Dom'],
 ] as const;
+const TIMES = ['06:45', '07:00', '07:15', '07:30', '08:00', '13:00'];
+
 const ROLES: { key: MobilityRole; label: string }[] = [
   { key: 'llevo', label: 'Llevo' },
   { key: 'recojo', label: 'Recojo' },
@@ -61,7 +64,7 @@ export default function ConfirmarScreen() {
 
   const [heard, setHeard] = useState<string | null>(params.text ?? null);
   const [parsing, setParsing] = useState(false);
-  const [category, setCategory] = useState(isListing ? (tipo === 'producto' ? 'comida' : 'otros') : tipo === 'movilidad' ? 'movilidad' : 'otros');
+  const [category, setCategory] = useState(isListing ? (tipo === 'producto' ? 'articulos' : 'otros') : tipo === 'movilidad' ? 'movilidad' : 'otros');
   const [title, setTitle] = useState('');
   const [titleTouched, setTitleTouched] = useState(false);
   const [description, setDescription] = useState('');
@@ -79,7 +82,7 @@ export default function ConfirmarScreen() {
   }, []);
 
   const applyParsed = (p: ParsedPost) => {
-    if (p.category) setCategory(p.category);
+    if (p.category) setCategory(tipo === 'producto' && p.category === 'otros' ? 'articulos' : p.category);
     if (p.title) {
       setTitle(p.title);
       setTitleTouched(true);
@@ -121,7 +124,7 @@ export default function ConfirmarScreen() {
       case 'servicio':
         return category === 'otros' ? `Servicio de ${name}` : `${name} · ${cat.label}`;
       case 'producto':
-        return category === 'otros' ? `Productos de ${name}` : `${cat.label} de ${name}`;
+        return category === 'otros' || category === 'articulos' ? `Vendo artículos · ${name}` : `${cat.label} de ${name}`;
       case 'pido':
         return category === 'otros' ? 'Necesito una mano' : `Necesito ayuda con ${cat.label.toLowerCase()}`;
       case 'presto':
@@ -137,6 +140,15 @@ export default function ConfirmarScreen() {
 
   const publish = async () => {
     if (saving) return;
+    // Sin cuenta solo se mira, se pide SOS y se avisa "Estoy bien". Para publicar en el barrio hace falta
+    // una cuenta con correo confirmado: así cada publicación tiene un responsable y se puede moderar.
+    if (!useSession.getState().authUserId) {
+      Alert.alert('Crea tu cuenta para publicar', 'Así tus vecinos saben quién publica. Sin cuenta igual puedes ver el barrio y pedir ayuda con SOS.', [
+        { text: 'Ahora no', style: 'cancel' },
+        { text: 'Crear mi cuenta', onPress: () => router.push('/bienvenida') },
+      ]);
+      return;
+    }
     setSaving(true);
     try {
       setTaps(3); // toque 3 de 3
@@ -161,7 +173,10 @@ export default function ConfirmarScreen() {
           title: finalTitle,
           description: description || null,
           location,
-          mobility: tipo === 'movilidad' ? { destination: destination.trim() || 'Colegio', days, time, role } : undefined,
+          mobility:
+            tipo === 'movilidad'
+              ? { destination: destination.trim() || 'Colegio', days: days.length ? days : ['lun', 'mar', 'mie', 'jue', 'vie'], time: normalizeTime(time) || '07:15', role }
+              : undefined,
         });
         router.replace(`/favor/${id}`);
       }
@@ -173,7 +188,8 @@ export default function ConfirmarScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* "padding" también en Android: con pantalla de borde a borde (Android 15+) el teclado tapaba el botón Publicar */}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <BackHeader right={<TapPill step={3} />} />
           <AppText variant="hero" bold accessibilityRole="header">
@@ -221,9 +237,16 @@ export default function ConfirmarScreen() {
           ) : (
             <>
               <Field label="¿A dónde?" value={destination} onChangeText={setDestination} placeholder="Ej. Colegio San Antonio" />
-              <View style={styles.row2}>
-                <Field label="Hora" value={time} onChangeText={setTime} placeholder="07:15" keyboardType="numbers-and-punctuation" style={{ flex: 1 }} />
+              <AppText bold variant="small" color={colors.inkSoft}>
+                Hora
+              </AppText>
+              {/* Toques en vez de teclado: más fácil para adultos mayores y sin formatos raros */}
+              <View style={styles.wrap}>
+                {TIMES.map((h) => (
+                  <Chip key={h} label={h} selected={time === h} onPress={() => setTime(h)} />
+                ))}
               </View>
+              <Field label="Otra hora" value={TIMES.includes(time) ? '' : time} onChangeText={setTime} onBlur={() => setTime((t) => normalizeTime(t) || '07:15')} placeholder="Ej. 7:45" keyboardType="numeric" />
               <AppText bold variant="small" color={colors.inkSoft}>
                 Días
               </AppText>
